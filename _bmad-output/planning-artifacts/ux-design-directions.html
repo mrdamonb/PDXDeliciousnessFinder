@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDX Deliciousness Finder — Design Direction Mockups</title>
+<style>
+  :root {
+    --bg: #F7F3EE;
+    --surface: #FFFFFF;
+    --text-primary: #1C1917;
+    --text-secondary: #6B6560;
+    --border: #EDE8E3;
+    --accent: #C2410C;
+    --status-want: #F59E0B;
+    --status-been: #16A34A;
+    --status-fav: #DC2626;
+    --friend: #7C3AED;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    text-align: center;
+    padding: 64px 24px 48px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    font-size: 17px;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* ─── Direction Nav ─── */
+  .direction-nav {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0 24px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .direction-nav button {
+    padding: 10px 20px;
+    border-radius: 100px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .direction-nav button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .direction-nav button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* ─── Direction Panel ─── */
+  .direction-panel {
+    display: none;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+  .direction-panel.active { display: block; }
+
+  .direction-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .direction-header .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .direction-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .direction-header p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* ─── Phone Frame ─── */
+  .phone-row {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .phone-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .phone-col .screen-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .phone-frame {
+    width: 280px;
+    height: 560px;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(28,25,23,0.12), 0 0 0 1px rgba(28,25,23,0.06);
+    position: relative;
+    background: var(--surface);
+  }
+  .phone-frame .status-bar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .phone-frame .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 12px 16px;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .tab-bar .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .tab-bar .tab-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+  }
+
+  /* ─── Traits Grid ─── */
+  .traits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .trait-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .trait-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .trait-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* ─── Comparison Table ─── */
+  .comparison {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin: 0 auto 48px;
+    max-width: 800px;
+  }
+  .comparison h3 {
+    padding: 20px 24px 12px;
+    font-size: 17px;
+  }
+  .comparison table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .comparison th, .comparison td {
+    text-align: left;
+    padding: 10px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .comparison th {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── Map mockup elements ─── */
+  .mock-map {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+  .mock-map-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .map-gradient {
+    background: linear-gradient(135deg, #e8e0d6 0%, #d4ccc2 40%, #c8bfb3 70%, #ddd5cb 100%);
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  /* Fake map roads */
+  .map-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,0.4) 30.5%, transparent 30.5%),
+      linear-gradient(90deg, transparent 55%, rgba(255,255,255,0.35) 55%, rgba(255,255,255,0.35) 55.4%, transparent 55.4%),
+      linear-gradient(90deg, transparent 78%, rgba(255,255,255,0.3) 78%, rgba(255,255,255,0.3) 78.3%, transparent 78.3%),
+      linear-gradient(0deg, transparent 25%, rgba(255,255,255,0.4) 25%, rgba(255,255,255,0.4) 25.5%, transparent 25.5%),
+      linear-gradient(0deg, transparent 50%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.35) 50.4%, transparent 50.4%),
+      linear-gradient(0deg, transparent 72%, rgba(255,255,255,0.3) 72%, rgba(255,255,255,0.3) 72.3%, transparent 72.3%),
+      linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.25) 40%, rgba(255,255,255,0.25) 40.4%, transparent 40.4%);
+  }
+  .map-gradient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 60%, rgba(162,193,162,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 30%, rgba(180,200,180,0.1) 0%, transparent 40%);
+  }
+  .pin {
+    position: absolute;
+    width: 28px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 2;
+  }
+  .pin::after {
+    content: attr(data-icon);
+    transform: rotate(45deg);
+    font-size: 12px;
+  }
+  .pin.want { background: var(--status-want); }
+  .pin.been { background: var(--status-been); }
+  .pin.fav { background: var(--status-fav); }
+  .pin.friend-pin { box-shadow: 0 0 0 2px var(--friend), 0 2px 6px rgba(0,0,0,0.2); }
+
+  .pin-minimal {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    z-index: 2;
+    border: 2px solid white;
+  }
+
+  .pin-large {
+    position: absolute;
+    width: 36px;
+    height: 44px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    z-index: 2;
+  }
+  .pin-large::after {
+    content: attr(data-icon);
+    transform: rotate(45deg);
+    font-size: 16px;
+  }
+
+  /* ─── Filter pills ─── */
+  .filter-strip {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    overflow: hidden;
+  }
+  .pill {
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+  }
+  .pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* ─── Search Bar ─── */
+  .search-bar {
+    margin: 0 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 14px;
+    color: var(--text-secondary);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ─── Detail sheet ─── */
+  .detail-sheet {
+    position: absolute;
+    bottom: 72px;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 16px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  }
+  .detail-sheet .handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 12px;
+  }
+  .detail-sheet h3 { font-size: 17px; font-weight: 700; }
+  .detail-sheet .meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+
+  /* ─── List row ─── */
+  .list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .list-row .row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .list-row .row-text h4 { font-size: 15px; font-weight: 600; }
+  .list-row .row-text p { font-size: 12px; color: var(--text-secondary); }
+
+  /* ─── Direction-specific overrides ─── */
+
+  /* Direction 1: Portland Journal */
+  .d1 .phone-frame { background: #F7F3EE; }
+  .d1 .status-bar { background: #F7F3EE; color: var(--text-primary); }
+  .d1 .tab-bar { background: var(--surface); border-top: 1px solid var(--border); color: var(--text-secondary); }
+  .d1 .search-bar { background: var(--surface); border: 1px solid var(--border); box-shadow: none; }
+
+  /* Direction 2: Cartographer */
+  .d2 .phone-frame { background: #e8e0d6; }
+  .d2 .status-bar { background: transparent; color: var(--text-primary); position: absolute; top: 0; left: 0; right: 0; z-index: 5; }
+  .d2 .tab-bar { background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-top: 1px solid rgba(0,0,0,0.06); color: var(--text-secondary); }
+  .d2 .search-bar { background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .d2 .filter-strip .pill { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); }
+
+  /* Direction 3: Neighborhood Local */
+  .d3 .phone-frame { background: #F7F3EE; }
+  .d3 .status-bar { background: #F7F3EE; color: var(--text-primary); }
+  .d3 .tab-bar { background: var(--surface); border-top: 1px solid var(--border); color: var(--text-secondary); }
+  .d3 .search-bar { border-radius: 8px; }
+
+  /* Direction 4: Pin Forward */
+  .d4 .phone-frame { background: #FFF8F0; }
+  .d4 .status-bar { background: #FFF8F0; color: var(--text-primary); }
+  .d4 .tab-bar { background: #FFF8F0; border-top: 1px solid var(--border); color: var(--text-secondary); }
+
+  /* Direction 5: Dark Kitchen */
+  .d5 .phone-frame { background: #1C1917; color: #F7F3EE; }
+  .d5 .status-bar { background: #1C1917; color: #F7F3EE; }
+  .d5 .tab-bar { background: #252220; border-top: 1px solid #333; color: #9A9590; }
+  .d5 .search-bar { background: #252220; color: #9A9590; border: 1px solid #333; box-shadow: none; }
+  .d5 .filter-strip .pill { background: #252220; border-color: #444; color: #9A9590; }
+  .d5 .filter-strip .pill.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .d5 .detail-sheet { background: #252220; color: #F7F3EE; }
+  .d5 .detail-sheet .handle { background: #444; }
+  .d5 .detail-sheet .meta { color: #9A9590; }
+  .d5 .list-row { border-bottom-color: #333; }
+  .d5 .list-row .row-text p { color: #9A9590; }
+  .d5 .map-gradient { background: linear-gradient(135deg, #2a2825 0%, #353230 40%, #2e2b28 70%, #3a3735 100%); }
+  .d5 .map-gradient::before {
+    background:
+      linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 30.5%, transparent 30.5%),
+      linear-gradient(90deg, transparent 55%, rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.05) 55.4%, transparent 55.4%),
+      linear-gradient(90deg, transparent 78%, rgba(255,255,255,0.04) 78%, rgba(255,255,255,0.04) 78.3%, transparent 78.3%),
+      linear-gradient(0deg, transparent 25%, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.06) 25.5%, transparent 25.5%),
+      linear-gradient(0deg, transparent 50%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.05) 50.4%, transparent 50.4%),
+      linear-gradient(0deg, transparent 72%, rgba(255,255,255,0.04) 72%, rgba(255,255,255,0.04) 72.3%, transparent 72.3%),
+      linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.03) 40.4%, transparent 40.4%);
+  }
+  .d5 .map-gradient::after {
+    background:
+      radial-gradient(ellipse at 20% 60%, rgba(100,130,100,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 30%, rgba(120,140,120,0.06) 0%, transparent 40%);
+  }
+
+  /* Direction 6: Trusted Circle */
+  .d6 .phone-frame { background: #F7F3EE; }
+  .d6 .status-bar { background: #F7F3EE; color: var(--text-primary); }
+  .d6 .tab-bar { background: var(--surface); border-top: 1px solid var(--border); color: var(--text-secondary); }
+
+  /* Friend badge */
+  .friend-badge {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--friend);
+    border: 2px solid white;
+    font-size: 7px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    z-index: 3;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    .phone-row { gap: 24px; }
+    .phone-frame { width: 240px; height: 480px; }
+    .hero h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>PDX Deliciousness Finder</h1>
+  <p>Design Direction Mockups — Explore 6 visual approaches for your personal Portland food map. Each direction applies the same foundation (earthy palette, SF Pro, HIG base) with a different personality.</p>
+</div>
+
+<div class="direction-nav" id="nav">
+  <button class="active" onclick="showDirection(1)">1. Portland Journal</button>
+  <button onclick="showDirection(2)">2. Cartographer</button>
+  <button onclick="showDirection(3)">3. Neighborhood Local</button>
+  <button onclick="showDirection(4)">4. Pin Forward</button>
+  <button onclick="showDirection(5)">5. Dark Kitchen</button>
+  <button onclick="showDirection(6)">6. Trusted Circle</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 1: Portland Journal                               -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="direction-panel active d1" id="d1">
+  <div class="direction-header">
+    <div class="badge">Direction 1</div>
+    <h2>Portland Journal</h2>
+    <p>Warm, editorial, personal. Emphasizes the "private food journal" metaphor. Generous spacing on cards, muted earthy tones, handcrafted warmth. The map is softened by a warm paper-like canvas.</p>
+  </div>
+
+  <div class="phone-row">
+    <!-- Map View -->
+    <div class="phone-col">
+      <div class="screen-label">Map View</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div class="search-bar">
+          <span style="opacity:0.4">&#x1F50D;</span>
+          <span>Search your places...</span>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">Want to Go</div>
+          <div class="pill">Been There</div>
+          <div class="pill">$$</div>
+          <div class="pill">NW</div>
+        </div>
+        <div class="mock-map" style="height: 280px;">
+          <div class="map-gradient">
+            <div class="pin want" style="top:30%;left:25%" data-icon="&#x1F37D;"></div>
+            <div class="pin been" style="top:50%;left:60%" data-icon="&#x1F37A;"></div>
+            <div class="pin fav" style="top:40%;left:42%" data-icon="&#x2B50;"></div>
+            <div class="pin want" style="top:65%;left:35%" data-icon="&#x1F69A;"></div>
+            <div class="pin been" style="top:25%;left:70%" data-icon="&#x1F37D;"></div>
+            <div class="pin want friend-pin" style="top:55%;left:20%" data-icon="&#x1F37D;"></div>
+          </div>
+        </div>
+        <div class="detail-sheet" style="height: 130px;">
+          <div class="handle"></div>
+          <h3>Tasty n Daughters</h3>
+          <div class="meta"><span class="status-dot" style="background:var(--status-want)"></span>Want to Go &middot; American brunch &middot; $$ &middot; Williams</div>
+          <div class="meta" style="margin-top:8px; font-style:italic; color: var(--text-secondary);">"Heard about the hash brown bowl at dinner party"</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View -->
+    <div class="phone-col">
+      <div class="screen-label">List View</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="padding: 8px 16px 4px;">
+          <h2 style="font-size:28px; font-weight:700;">My List</h2>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">All</div>
+          <div class="pill">Want to Go</div>
+          <div class="pill">Favorites</div>
+          <div class="pill">SE</div>
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEF3C7;">&#x1F37D;</div>
+            <div class="row-text">
+              <h4>Tasty n Daughters</h4>
+              <p><span class="status-dot" style="background:var(--status-want)"></span>American brunch &middot; $$ &middot; Williams</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#DCFCE7;">&#x1F37A;</div>
+            <div class="row-text">
+              <h4>Breakside Brewery</h4>
+              <p><span class="status-dot" style="background:var(--status-been)"></span>Brewery &middot; $$ &middot; Dekum</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEE2E2;">&#x2B50;</div>
+            <div class="row-text">
+              <h4>Langbaan</h4>
+              <p><span class="status-dot" style="background:var(--status-fav)"></span>Thai &middot; $$$ &middot; Division</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEF3C7;">&#x1F69A;</div>
+            <div class="row-text">
+              <h4>G&uuml;ero</h4>
+              <p><span class="status-dot" style="background:var(--status-want)"></span>Mexican fusion &middot; $ &middot; Mississippi &middot; <span style="color:var(--friend)">&#x25CF; Mia</span></p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#DCFCE7;">&#x1F37D;</div>
+            <div class="row-text">
+              <h4>Canard</h4>
+              <p><span class="status-dot" style="background:var(--status-been)"></span>French &middot; $$$ &middot; East Burnside</p>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Map</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">List</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Card -->
+    <div class="phone-col">
+      <div class="screen-label">Share Extension</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="flex:1; background: rgba(0,0,0,0.3); display:flex; flex-direction:column; justify-content:flex-end;">
+          <div style="background:var(--surface); border-radius:20px 20px 0 0; padding:20px;">
+            <div class="handle" style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;"></div>
+            <h3 style="font-size:20px; margin-bottom:4px;">Nong's Khao Man Gai</h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">609 SE Ankeny St, Portland</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+              <div style="padding:10px 12px; background:var(--bg); border-radius:10px;">
+                <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Cuisine</div>
+                <div style="font-size:14px; font-weight:600;">Thai</div>
+              </div>
+              <div style="padding:10px 12px; background:var(--bg); border-radius:10px;">
+                <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Price</div>
+                <div style="font-size:14px; font-weight:600;">$</div>
+              </div>
+              <div style="padding:10px 12px; background:var(--bg); border-radius:10px;">
+                <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Type</div>
+                <div style="font-size:14px; font-weight:600;">Food Cart</div>
+              </div>
+              <div style="padding:10px 12px; background:var(--bg); border-radius:10px;">
+                <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Neighborhood</div>
+                <div style="font-size:14px; font-weight:600;">Buckman</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+              <div class="pill active" style="font-size:13px; padding:8px 16px;">Want to Go</div>
+              <div class="pill" style="font-size:13px; padding:8px 16px;">Been There</div>
+            </div>
+
+            <button style="width:100%; padding:14px; background:var(--accent); color:white; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer;">Save to My List</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traits">
+    <div class="trait-card">
+      <h4>&#x1F4D6; Personality</h4>
+      <p>Warm, private, editorial. Feels like a personal journal with a Portland soul. Quiet confidence.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F3A8; Visual Weight</h4>
+      <p>Medium. Generous card spacing, soft shadows, warm paper background. Content breathes.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F5FA; Map Emphasis</h4>
+      <p>Balanced. Map shares attention with the detail sheet and filters. The detail card has room for notes and personal voice.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F517; Closest Inspiration</h4>
+      <p>Headspace warmth + NYT Cooking organization. Personal, approachable, not techy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 2: Cartographer                                    -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="direction-panel d2" id="d2">
+  <div class="direction-header">
+    <div class="badge">Direction 2</div>
+    <h2>Cartographer</h2>
+    <p>Map-maximalist. The map dominates every screen. Chrome is translucent and minimal. Search and filters float over the map as glass overlays. Every pixel serves the "personal food geography" vision.</p>
+  </div>
+
+  <div class="phone-row">
+    <div class="phone-col">
+      <div class="screen-label">Map View (full bleed)</div>
+      <div class="phone-frame" style="overflow:hidden;">
+        <div class="mock-map" style="position:absolute;inset:0;">
+          <div class="map-gradient">
+            <div class="pin want" style="top:22%;left:20%" data-icon="&#x1F37D;"></div>
+            <div class="pin been" style="top:38%;left:55%" data-icon="&#x1F37A;"></div>
+            <div class="pin fav" style="top:30%;left:40%" data-icon="&#x2B50;"></div>
+            <div class="pin want" style="top:55%;left:28%" data-icon="&#x1F69A;"></div>
+            <div class="pin been" style="top:18%;left:65%" data-icon="&#x1F37D;"></div>
+            <div class="pin want" style="top:48%;left:72%" data-icon="&#x1F37D;"></div>
+            <div class="pin fav" style="top:62%;left:50%" data-icon="&#x2B50;"></div>
+            <div class="pin been" style="top:70%;left:18%" data-icon="&#x1F37A;"></div>
+          </div>
+        </div>
+        <div class="status-bar" style="position:relative;z-index:5;">9:41</div>
+        <div style="position:relative;z-index:5;">
+          <div class="search-bar">
+            <span style="opacity:0.4">&#x1F50D;</span>
+            <span>Search Portland...</span>
+          </div>
+          <div class="filter-strip">
+            <div class="pill active">Want to Go</div>
+            <div class="pill">Been</div>
+            <div class="pill">Fav</div>
+            <div class="pill">NW</div>
+            <div class="pill">$$</div>
+          </div>
+        </div>
+        <div class="tab-bar" style="z-index:5;">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:rgba(0,0,0,0.08)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:rgba(0,0,0,0.08)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:rgba(0,0,0,0.08)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Pin Tapped (minimal sheet)</div>
+      <div class="phone-frame" style="overflow:hidden;">
+        <div class="mock-map" style="position:absolute;inset:0;">
+          <div class="map-gradient">
+            <div class="pin want" style="top:22%;left:20%" data-icon="&#x1F37D;"></div>
+            <div class="pin been" style="top:38%;left:55%" data-icon="&#x1F37A;"></div>
+            <div class="pin fav" style="top:30%;left:40%;box-shadow:0 0 0 3px var(--accent),0 2px 6px rgba(0,0,0,0.2)" data-icon="&#x2B50;"></div>
+            <div class="pin want" style="top:55%;left:28%" data-icon="&#x1F69A;"></div>
+          </div>
+        </div>
+        <div class="status-bar" style="position:relative;z-index:5;">9:41</div>
+        <div style="position:absolute;bottom:72px;left:0;right:0;z-index:5;background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border-radius:16px 16px 0 0;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--status-fav);flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:16px;font-weight:700;">Langbaan</div>
+              <div style="font-size:12px;color:var(--text-secondary);">Thai &middot; $$$ &middot; Division</div>
+            </div>
+            <div style="margin-left:auto;padding:6px 14px;background:var(--accent);color:white;border-radius:8px;font-size:12px;font-weight:600;">Details</div>
+          </div>
+        </div>
+        <div class="tab-bar" style="z-index:5;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,0.06);">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:rgba(0,0,0,0.08)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:rgba(0,0,0,0.08)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:rgba(0,0,0,0.08)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Confirmation Card</div>
+      <div class="phone-frame" style="overflow:hidden;">
+        <div class="mock-map" style="position:absolute;inset:0;opacity:0.4;">
+          <div class="map-gradient"></div>
+        </div>
+        <div class="status-bar" style="position:relative;z-index:5;">9:41</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;z-index:5;background:rgba(255,255,255,0.97);backdrop-filter:blur(20px);border-radius:24px 24px 0 0;padding:20px;">
+          <div class="handle" style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;"></div>
+          <h3 style="font-size:20px; margin-bottom:4px;">Pok Pok</h3>
+          <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">3226 SE Division St</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+            <div style="padding:10px 12px; background:rgba(247,243,238,0.8); border-radius:10px;">
+              <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Cuisine</div>
+              <div style="font-size:14px; font-weight:600;">Thai</div>
+            </div>
+            <div style="padding:10px 12px; background:rgba(247,243,238,0.8); border-radius:10px;">
+              <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Price</div>
+              <div style="font-size:14px; font-weight:600;">$$</div>
+            </div>
+            <div style="padding:10px 12px; background:rgba(247,243,238,0.8); border-radius:10px;">
+              <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Type</div>
+              <div style="font-size:14px; font-weight:600;">Restaurant</div>
+            </div>
+            <div style="padding:10px 12px; background:rgba(247,243,238,0.8); border-radius:10px;">
+              <div style="font-size:10px; color:var(--text-secondary); margin-bottom:2px;">Neighborhood</div>
+              <div style="font-size:14px; font-weight:600;">Division</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-bottom:16px;">
+            <div class="pill active" style="font-size:13px; padding:8px 16px;">Want to Go</div>
+            <div class="pill" style="font-size:13px; padding:8px 16px;">Been There</div>
+          </div>
+          <button style="width:100%; padding:14px; background:var(--accent); color:white; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer;">Save to My List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traits">
+    <div class="trait-card">
+      <h4>&#x1F5FA; Personality</h4>
+      <p>Geographic, immersive, data-rich. The map IS the interface. Every element defers to the food geography.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F3A8; Visual Weight</h4>
+      <p>Light chrome, heavy map. Glass-morphism overlays keep UI present but transparent. Pins are the hero.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F4CD; Map Emphasis</h4>
+      <p>Maximum. Map runs edge-to-edge behind everything. Detail sheet is a compact peek, not a full card.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F517; Closest Inspiration</h4>
+      <p>Apple Maps' full-bleed approach + Google Maps' pin density. Functional, spatial, efficient.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 3: Neighborhood Local                              -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="direction-panel d3" id="d3">
+  <div class="direction-header">
+    <div class="badge">Direction 3</div>
+    <h2>Neighborhood Local</h2>
+    <p>Portland neighborhoods are the primary organizing principle. List view groups by neighborhood with bold section headers. Map subtly highlights neighborhood boundaries. The app thinks the way Portlanders think about food: by hood.</p>
+  </div>
+
+  <div class="phone-row">
+    <div class="phone-col">
+      <div class="screen-label">List (by neighborhood)</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="padding: 8px 16px 4px;">
+          <h2 style="font-size:28px; font-weight:700;">My List</h2>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">All Hoods</div>
+          <div class="pill">Want to Go</div>
+          <div class="pill">Favorites</div>
+          <div class="pill">$$</div>
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div style="padding:12px 16px 6px; font-size:13px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1px; border-bottom:2px solid var(--accent);">Division / Clinton</div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEE2E2;">&#x2B50;</div>
+            <div class="row-text">
+              <h4>Langbaan</h4>
+              <p>Thai &middot; $$$ &middot; <span style="color:var(--status-fav);">Favorite</span></p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEF3C7;">&#x1F37D;</div>
+            <div class="row-text">
+              <h4>Ava Gene's</h4>
+              <p>Italian &middot; $$$ &middot; <span style="color:var(--status-want);">Want to Go</span></p>
+            </div>
+          </div>
+          <div style="padding:12px 16px 6px; font-size:13px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1px; border-bottom:2px solid var(--accent);">Mississippi</div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEF3C7;">&#x1F69A;</div>
+            <div class="row-text">
+              <h4>G&uuml;ero</h4>
+              <p>Mexican fusion &middot; $ &middot; <span style="color:var(--status-want);">Want to Go</span> &middot; <span style="color:var(--friend);">via Mia</span></p>
+            </div>
+          </div>
+          <div style="padding:12px 16px 6px; font-size:13px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1px; border-bottom:2px solid var(--accent);">Williams</div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEF3C7;">&#x1F37D;</div>
+            <div class="row-text">
+              <h4>Tasty n Daughters</h4>
+              <p>American brunch &middot; $$ &middot; <span style="color:var(--status-want);">Want to Go</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Map</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">List</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Map with neighborhoods</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div class="search-bar">
+          <span style="opacity:0.4">&#x1F50D;</span>
+          <span>Search your places...</span>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active" style="background:var(--accent);border-color:var(--accent);color:white;">Division</div>
+          <div class="pill">Alberta</div>
+          <div class="pill">Mississippi</div>
+          <div class="pill">Pearl</div>
+          <div class="pill">NW 23rd</div>
+        </div>
+        <div class="mock-map" style="height:280px;">
+          <div class="map-gradient">
+            <!-- Subtle neighborhood region overlay -->
+            <div style="position:absolute;top:20%;left:30%;width:35%;height:30%;background:rgba(194,65,12,0.06);border:1px dashed rgba(194,65,12,0.2);border-radius:8px;z-index:1;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;">
+              <span style="font-size:9px;font-weight:700;color:var(--accent);opacity:0.6;text-transform:uppercase;letter-spacing:1px;">Division</span>
+            </div>
+            <div class="pin fav" style="top:30%;left:42%" data-icon="&#x2B50;"></div>
+            <div class="pin want" style="top:35%;left:52%" data-icon="&#x1F37D;"></div>
+            <div class="pin been" style="top:40%;left:38%" data-icon="&#x1F37D;"></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Neighborhood Drilldown</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="padding: 12px 16px 8px; border-bottom: 1px solid var(--border);">
+          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:2px;">&larr; Back to All</div>
+          <h2 style="font-size:24px; font-weight:700;">Division / Clinton</h2>
+          <div style="font-size:13px; color:var(--text-secondary);">3 places &middot; 1 favorite</div>
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEE2E2;">&#x2B50;</div>
+            <div class="row-text">
+              <h4>Langbaan</h4>
+              <p>Thai &middot; $$$ &middot; Favorite</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#FEF3C7;">&#x1F37D;</div>
+            <div class="row-text">
+              <h4>Ava Gene's</h4>
+              <p>Italian &middot; $$$ &middot; Want to Go</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:#DCFCE7;">&#x1F37D;</div>
+            <div class="row-text">
+              <h4>Magna Kusina</h4>
+              <p>Filipino &middot; $$ &middot; Been There</p>
+            </div>
+          </div>
+          <div style="padding:24px 16px; text-align:center; color:var(--text-secondary); font-size:13px;">
+            End of Division / Clinton
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Map</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">List</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traits">
+    <div class="trait-card">
+      <h4>&#x1F3D8; Personality</h4>
+      <p>Hyper-local, community-rooted. Speaks the language of Portland neighborhoods. Feels like a local's knowledge.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F3A8; Visual Weight</h4>
+      <p>Medium-heavy. Bold neighborhood headers create visual structure. Sectioned lists have editorial rhythm.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F5FA; Map Emphasis</h4>
+      <p>Map as context, neighborhoods as structure. Subtle boundary overlays on the map; neighborhood headers in the list.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F517; Closest Inspiration</h4>
+      <p>Eater PDX neighborhood guides + Apple Maps' area awareness. Portland food culture speaks in hoods.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 4: Pin Forward                                     -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="direction-panel d4" id="d4">
+  <div class="direction-header">
+    <div class="badge">Direction 4</div>
+    <h2>Pin Forward</h2>
+    <p>Pins are the hero visual element — larger, bolder, more expressive. Venue-type icons are illustrated, not emoji. The map feels like a curated illustrated map of Portland. More playful, more personality.</p>
+  </div>
+
+  <div class="phone-row">
+    <div class="phone-col">
+      <div class="screen-label">Map (hero pins)</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div class="search-bar" style="border:1px solid var(--border);box-shadow:none;">
+          <span style="opacity:0.4">&#x1F50D;</span>
+          <span>Search your places...</span>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">All</div>
+          <div class="pill">Want to Go</div>
+          <div class="pill">Favorites</div>
+          <div class="pill">Food Carts</div>
+        </div>
+        <div class="mock-map" style="height:260px;">
+          <div class="map-gradient">
+            <div class="pin-large want" style="top:20%;left:18%;background:var(--status-want);" data-icon="&#x1F372;"></div>
+            <div class="pin-large been" style="top:38%;left:50%;background:var(--status-been);" data-icon="&#x1F37A;"></div>
+            <div class="pin-large fav" style="top:28%;left:38%;background:var(--status-fav);" data-icon="&#x2764;"></div>
+            <div class="pin-large want" style="top:55%;left:25%;background:var(--status-want);" data-icon="&#x1F69A;"></div>
+            <div class="pin-large been" style="top:15%;left:62%;background:var(--status-been);" data-icon="&#x1F363;"></div>
+            <div class="pin-large want" style="top:48%;left:68%;background:var(--status-want);" data-icon="&#x1F355;"></div>
+            <div class="friend-badge" style="top:13%;left:73%;">M</div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:72px;left:12px;right:12px;background:var(--surface);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--status-fav);display:flex;align-items:center;justify-content:center;font-size:22px;">&#x2764;</div>
+            <div style="flex:1;">
+              <div style="font-size:16px;font-weight:700;">Langbaan</div>
+              <div style="font-size:12px;color:var(--text-secondary);">Thai &middot; $$$ &middot; Division</div>
+              <div style="font-size:11px;color:var(--status-fav);margin-top:2px;">&#x2605; Favorite &middot; Visited 3x</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar" style="border-top:1px solid var(--border);background:#FFF8F0;">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Detail Card</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="padding:16px; flex:1;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:56px;height:56px;border-radius:16px;background:var(--status-fav);display:flex;align-items:center;justify-content:center;font-size:28px;">&#x2764;</div>
+            <div>
+              <div style="font-size:22px;font-weight:700;">Langbaan</div>
+              <div style="font-size:14px;color:var(--text-secondary);">Thai &middot; $$$ &middot; Division</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <div style="padding:6px 14px;background:#FEE2E2;border-radius:100px;font-size:12px;font-weight:600;color:var(--status-fav);">&#x2605; Favorite</div>
+            <div style="padding:6px 14px;background:var(--bg);border-radius:100px;font-size:12px;font-weight:600;color:var(--text-secondary);">3 visits</div>
+          </div>
+          <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">YOUR NOTES</div>
+            <div style="font-size:14px;line-height:1.5;">Hidden gem behind PaaDee. The tasting menu changes weekly. Always worth the walk-in gamble.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">VISIT LOG</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;">
+              <span>Mar 15, 2026</span>
+              <span style="color:var(--text-secondary);">"Got the whole tasting menu"</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-top:1px solid var(--border);margin-top:4px;padding-top:8px;">
+              <span>Feb 2, 2026</span>
+              <span style="color:var(--text-secondary);">"First visit, incredible"</span>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar" style="border-top:1px solid var(--border);background:#FFF8F0;">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Empty State</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+          <div style="font-size:64px;margin-bottom:16px;">&#x1F5FA;</div>
+          <h3 style="font-size:22px;font-weight:700;margin-bottom:8px;">Your Portland Food Map</h3>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;line-height:1.5;">Share a restaurant link from any app to drop your first pin. Your food map starts with one place.</p>
+          <div style="display:flex;gap:8px;">
+            <button style="padding:12px 20px;background:var(--accent);color:white;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Share a Link</button>
+            <button style="padding:12px 20px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Add Manually</button>
+          </div>
+        </div>
+        <div class="tab-bar" style="border-top:1px solid var(--border);background:#FFF8F0;">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traits">
+    <div class="trait-card">
+      <h4>&#x1F3A8; Personality</h4>
+      <p>Playful, illustrated, Portland-weird. Pins feel like stickers on your personal map. Food icons carry personality.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x2696; Visual Weight</h4>
+      <p>Heavy on pins, light on chrome. Larger pin elements draw the eye to the content. Detail cards use large icon headers.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F4CD; Map Emphasis</h4>
+      <p>High — but the pins are the stars, not the map tiles. The map is a canvas for your pin collection.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F517; Closest Inspiration</h4>
+      <p>Illustrated city maps + Headspace playfulness. More personality than typical utility apps.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 5: Dark Kitchen                                    -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="direction-panel d5" id="d5">
+  <div class="direction-header">
+    <div class="badge">Direction 5</div>
+    <h2>Dark Kitchen</h2>
+    <p>Dark-mode-first aesthetic. Moody, intimate, restaurant-menu-inspired. High contrast status colors glow against dark surfaces. Feels like a chef's private notebook opened under dim lighting.</p>
+  </div>
+
+  <div class="phone-row">
+    <div class="phone-col">
+      <div class="screen-label">Map View (dark)</div>
+      <div class="phone-frame">
+        <div class="status-bar" style="color:#F7F3EE;">9:41</div>
+        <div class="search-bar">
+          <span style="opacity:0.4">&#x1F50D;</span>
+          <span>Search your places...</span>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">Want to Go</div>
+          <div class="pill">Been</div>
+          <div class="pill">NW</div>
+          <div class="pill">$$</div>
+        </div>
+        <div class="mock-map" style="height:260px;">
+          <div class="map-gradient">
+            <div class="pin want" style="top:25%;left:22%" data-icon="&#x1F37D;"></div>
+            <div class="pin been" style="top:42%;left:55%" data-icon="&#x1F37A;"></div>
+            <div class="pin fav" style="top:32%;left:40%" data-icon="&#x2B50;"></div>
+            <div class="pin want" style="top:58%;left:30%" data-icon="&#x1F69A;"></div>
+            <div class="pin been" style="top:18%;left:68%" data-icon="&#x1F37D;"></div>
+            <div class="pin fav" style="top:50%;left:65%" data-icon="&#x2B50;"></div>
+          </div>
+        </div>
+        <div class="detail-sheet" style="height:100px;background:#252220;">
+          <div class="handle"></div>
+          <h3 style="color:#F7F3EE;">Canard</h3>
+          <div class="meta"><span class="status-dot" style="background:var(--status-been)"></span>Been There &middot; French &middot; $$$ &middot; East Burnside</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.2"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:#333"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:#333"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:#333"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">List View (dark)</div>
+      <div class="phone-frame">
+        <div class="status-bar" style="color:#F7F3EE;">9:41</div>
+        <div style="padding: 8px 16px 4px;">
+          <h2 style="font-size:28px; font-weight:700; color:#F7F3EE;">My List</h2>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">All</div>
+          <div class="pill">Want to Go</div>
+          <div class="pill">Favorites</div>
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div class="list-row">
+            <div class="row-icon" style="background:rgba(245,158,11,0.15);">&#x1F37D;</div>
+            <div class="row-text">
+              <h4 style="color:#F7F3EE;">Tasty n Daughters</h4>
+              <p><span class="status-dot" style="background:var(--status-want)"></span>American brunch &middot; $$ &middot; Williams</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:rgba(22,163,74,0.15);">&#x1F37A;</div>
+            <div class="row-text">
+              <h4 style="color:#F7F3EE;">Breakside Brewery</h4>
+              <p><span class="status-dot" style="background:var(--status-been)"></span>Brewery &middot; $$ &middot; Dekum</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:rgba(220,38,38,0.15);">&#x2B50;</div>
+            <div class="row-text">
+              <h4 style="color:#F7F3EE;">Langbaan</h4>
+              <p><span class="status-dot" style="background:var(--status-fav)"></span>Thai &middot; $$$ &middot; Division</p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:rgba(245,158,11,0.15);">&#x1F69A;</div>
+            <div class="row-text">
+              <h4 style="color:#F7F3EE;">G&uuml;ero</h4>
+              <p><span class="status-dot" style="background:var(--status-want)"></span>Mexican fusion &middot; $ &middot; Mississippi &middot; <span style="color:var(--friend);">via Mia</span></p>
+            </div>
+          </div>
+          <div class="list-row">
+            <div class="row-icon" style="background:rgba(22,163,74,0.15);">&#x1F37D;</div>
+            <div class="row-text">
+              <h4 style="color:#F7F3EE;">Canard</h4>
+              <p><span class="status-dot" style="background:var(--status-been)"></span>French &middot; $$$ &middot; East Burnside</p>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:#333"></div>Map</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.2"></div><span style="color:var(--accent);font-weight:600">List</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:#333"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:#333"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Share Extension (dark)</div>
+      <div class="phone-frame">
+        <div class="status-bar" style="color:#F7F3EE;">9:41</div>
+        <div style="flex:1;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;">
+          <div style="background:#252220; border-radius:20px 20px 0 0; padding:20px;">
+            <div style="width:36px;height:4px;background:#444;border-radius:2px;margin:0 auto 16px;"></div>
+            <h3 style="font-size:20px; margin-bottom:4px; color:#F7F3EE;">Nong's Khao Man Gai</h3>
+            <p style="font-size:13px; color:#9A9590; margin-bottom:16px;">609 SE Ankeny St, Portland</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+              <div style="padding:10px 12px; background:#1C1917; border-radius:10px;">
+                <div style="font-size:10px; color:#9A9590; margin-bottom:2px;">Cuisine</div>
+                <div style="font-size:14px; font-weight:600; color:#F7F3EE;">Thai</div>
+              </div>
+              <div style="padding:10px 12px; background:#1C1917; border-radius:10px;">
+                <div style="font-size:10px; color:#9A9590; margin-bottom:2px;">Price</div>
+                <div style="font-size:14px; font-weight:600; color:#F7F3EE;">$</div>
+              </div>
+              <div style="padding:10px 12px; background:#1C1917; border-radius:10px;">
+                <div style="font-size:10px; color:#9A9590; margin-bottom:2px;">Type</div>
+                <div style="font-size:14px; font-weight:600; color:#F7F3EE;">Food Cart</div>
+              </div>
+              <div style="padding:10px 12px; background:#1C1917; border-radius:10px;">
+                <div style="font-size:10px; color:#9A9590; margin-bottom:2px;">Neighborhood</div>
+                <div style="font-size:14px; font-weight:600; color:#F7F3EE;">Buckman</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+              <div style="padding:8px 16px;border-radius:100px;font-size:13px;font-weight:600;background:var(--accent);color:white;border:1.5px solid var(--accent);">Want to Go</div>
+              <div style="padding:8px 16px;border-radius:100px;font-size:13px;font-weight:600;background:#1C1917;color:#9A9590;border:1.5px solid #444;">Been There</div>
+            </div>
+            <button style="width:100%; padding:14px; background:var(--accent); color:white; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer;">Save to My List</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traits">
+    <div class="trait-card">
+      <h4>&#x1F319; Personality</h4>
+      <p>Moody, intimate, sophisticated. Feels like opening a leather-bound notebook under warm restaurant lighting.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F3A8; Visual Weight</h4>
+      <p>Heavy. Dark surfaces make status colors pop. High contrast creates visual drama. Pins glow on the dark map.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F5FA; Map Emphasis</h4>
+      <p>High. Dark map tiles make colored pins the dominant visual element. Status colors become luminous.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F517; Closest Inspiration</h4>
+      <p>Restaurant menu aesthetics + Spotify dark mode. Premium, curated, nocturnal energy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 6: Trusted Circle                                  -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="direction-panel d6" id="d6">
+  <div class="direction-header">
+    <div class="badge">Direction 6</div>
+    <h2>Trusted Circle</h2>
+    <p>Social-forward without being a social network. Friend attribution is more prominent — friend avatars on the map, "via [friend]" callouts on cards, a Friends-integrated map layer toggle. Emphasizes the "trusted circle" value prop.</p>
+  </div>
+
+  <div class="phone-row">
+    <div class="phone-col">
+      <div class="screen-label">Map (friend layer visible)</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div class="search-bar">
+          <span style="opacity:0.4">&#x1F50D;</span>
+          <span>Search your places...</span>
+        </div>
+        <div style="display:flex;gap:6px;padding:4px 12px 0;">
+          <div style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:100px;background:var(--surface);border:1.5px solid var(--border);font-size:11px;font-weight:600;color:var(--text-secondary);">&#x1F464; My Places</div>
+          <div style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:100px;background:rgba(124,58,237,0.08);border:1.5px solid var(--friend);font-size:11px;font-weight:600;color:var(--friend);">&#x1F465; Friends' Picks</div>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">Want to Go</div>
+          <div class="pill">Been</div>
+          <div class="pill">NW</div>
+          <div class="pill">$$</div>
+        </div>
+        <div class="mock-map" style="height:240px;">
+          <div class="map-gradient">
+            <div class="pin want" style="top:22%;left:22%" data-icon="&#x1F37D;"></div>
+            <div class="pin been" style="top:40%;left:55%" data-icon="&#x1F37A;"></div>
+            <div class="pin fav" style="top:30%;left:40%" data-icon="&#x2B50;"></div>
+            <!-- Friend pins with badges -->
+            <div class="pin want friend-pin" style="top:55%;left:25%" data-icon="&#x1F69A;"></div>
+            <div class="friend-badge" style="top:52%;left:36%;">M</div>
+            <div class="pin been friend-pin" style="top:18%;left:65%" data-icon="&#x1F37D;"></div>
+            <div class="friend-badge" style="top:15%;left:76%;">D</div>
+            <div class="pin want friend-pin" style="top:48%;left:70%" data-icon="&#x1F37D;"></div>
+            <div class="friend-badge" style="top:45%;left:81%;">J</div>
+          </div>
+        </div>
+        <div class="detail-sheet" style="height:120px;">
+          <div class="handle"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <h3>G&uuml;ero</h3>
+            <div style="display:flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(124,58,237,0.08);border-radius:100px;font-size:11px;font-weight:600;color:var(--friend);">via Mia</div>
+          </div>
+          <div class="meta"><span class="status-dot" style="background:var(--status-want)"></span>Want to Go &middot; Mexican fusion &middot; $ &middot; Mississippi</div>
+          <div class="meta" style="margin-top:6px; font-size:12px; color:var(--friend);">&#x1F4AC; "Korean-Mexican fusion tacos, cash only, closes at 3pm" — Mia</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Map</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Friends</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Friends Tab</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="padding: 8px 16px 4px;">
+          <h2 style="font-size:28px; font-weight:700;">Friends</h2>
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div style="padding:12px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border);">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--friend);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;">M</div>
+            <div style="flex:1;">
+              <div style="font-size:16px;font-weight:600;">Mia</div>
+              <div style="font-size:12px;color:var(--text-secondary);">42 places &middot; 8 favorites</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+              <div style="padding:4px 10px;border-radius:100px;background:rgba(124,58,237,0.08);font-size:11px;font-weight:600;color:var(--friend);">Synced</div>
+              <div style="font-size:10px;color:var(--text-secondary);">3 new this week</div>
+            </div>
+          </div>
+          <div style="padding:12px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border);">
+            <div style="width:44px;height:44px;border-radius:50%;background:#6B6560;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;">J</div>
+            <div style="flex:1;">
+              <div style="font-size:16px;font-weight:600;">Jamie</div>
+              <div style="font-size:12px;color:var(--text-secondary);">18 places &middot; 3 favorites</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+              <div style="padding:4px 10px;border-radius:100px;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-secondary);">Connected</div>
+              <div style="font-size:10px;color:var(--text-secondary);">Browse list &rarr;</div>
+            </div>
+          </div>
+          <div style="padding:12px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border);">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--friend);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;">D</div>
+            <div style="flex:1;">
+              <div style="font-size:16px;font-weight:600;">Damon</div>
+              <div style="font-size:12px;color:var(--text-secondary);">67 places &middot; 12 favorites</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+              <div style="padding:4px 10px;border-radius:100px;background:rgba(124,58,237,0.08);font-size:11px;font-weight:600;color:var(--friend);">Synced</div>
+              <div style="font-size:10px;color:var(--text-secondary);">1 new today</div>
+            </div>
+          </div>
+          <div style="padding:24px 16px;text-align:center;">
+            <button style="padding:12px 24px;background:var(--accent);color:white;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Invite a Friend</button>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Map</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Friends</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="screen-label">Friend's Map View</div>
+      <div class="phone-frame">
+        <div class="status-bar">9:41</div>
+        <div style="padding:8px 16px 4px; display:flex; align-items:center; gap:10px;">
+          <span style="font-size:14px;color:var(--text-secondary);">&larr;</span>
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--friend);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">M</div>
+          <div>
+            <div style="font-size:17px;font-weight:700;">Mia's Places</div>
+            <div style="font-size:11px;color:var(--text-secondary);">42 places &middot; Synced</div>
+          </div>
+        </div>
+        <div class="filter-strip">
+          <div class="pill active">Favorites</div>
+          <div class="pill">Want to Go</div>
+          <div class="pill">SE</div>
+        </div>
+        <div class="mock-map" style="height:240px;">
+          <div class="map-gradient">
+            <div class="pin fav friend-pin" style="top:25%;left:30%" data-icon="&#x2B50;"></div>
+            <div class="pin fav friend-pin" style="top:35%;left:52%" data-icon="&#x2B50;"></div>
+            <div class="pin fav friend-pin" style="top:45%;left:38%" data-icon="&#x2B50;"></div>
+            <div class="pin want friend-pin" style="top:55%;left:60%" data-icon="&#x1F37D;"></div>
+            <div class="pin want friend-pin" style="top:30%;left:68%" data-icon="&#x1F69A;"></div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:72px;left:0;right:0;background:var(--surface);border-radius:16px 16px 0 0;padding:14px 16px;box-shadow:0 -4px 20px rgba(0,0,0,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:15px;font-weight:700;">Ava Gene's</div>
+              <div style="font-size:12px;color:var(--text-secondary);"><span class="status-dot" style="background:var(--status-fav)"></span>Mia's Favorite &middot; Italian &middot; $$$</div>
+            </div>
+            <button style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Add to My List</button>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Map</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>List</div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--accent);opacity:0.15"></div><span style="color:var(--accent);font-weight:600">Friends</span></div>
+          <div class="tab-item"><div class="tab-icon" style="background:var(--border)"></div>Settings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traits">
+    <div class="trait-card">
+      <h4>&#x1F465; Personality</h4>
+      <p>Warm, connected, trust-forward. The social layer is visible everywhere but never feels like a social network. Friend picks feel like recommendations whispered at a dinner party.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F3A8; Visual Weight</h4>
+      <p>Medium. Friend badges and "via" callouts add a social texture layer. Purple accents complement the earthy palette without dominating.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F5FA; Map Emphasis</h4>
+      <p>Balanced. Map shows both your pins and friends' pins with clear visual distinction. Layer toggle lets you control the social signal.</p>
+    </div>
+    <div class="trait-card">
+      <h4>&#x1F517; Closest Inspiration</h4>
+      <p>Spotify collaborative playlists + iMessage contact UI. Social but intimate. Connected but not public.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- Comparison Table (always visible)                           -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="comparison" style="max-width:960px;">
+  <h3>Side-by-Side Comparison</h3>
+  <div style="overflow-x:auto;">
+    <table>
+      <tr>
+        <th>Trait</th>
+        <th>1. Journal</th>
+        <th>2. Carto</th>
+        <th>3. Local</th>
+        <th>4. Pin Fwd</th>
+        <th>5. Dark</th>
+        <th>6. Circle</th>
+      </tr>
+      <tr>
+        <td><strong>Map emphasis</strong></td>
+        <td>Balanced</td>
+        <td>Maximum</td>
+        <td>Contextual</td>
+        <td>High (pin hero)</td>
+        <td>High</td>
+        <td>Balanced</td>
+      </tr>
+      <tr>
+        <td><strong>Visual density</strong></td>
+        <td>Spacious</td>
+        <td>Compact</td>
+        <td>Structured</td>
+        <td>Bold</td>
+        <td>Dense</td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td><strong>Social visibility</strong></td>
+        <td>Subtle</td>
+        <td>Minimal</td>
+        <td>In-line</td>
+        <td>Badge</td>
+        <td>Subtle</td>
+        <td>Prominent</td>
+      </tr>
+      <tr>
+        <td><strong>Portland identity</strong></td>
+        <td>Color/warmth</td>
+        <td>Geography</td>
+        <td>Neighborhoods</td>
+        <td>Illustrated</td>
+        <td>Night life</td>
+        <td>Community</td>
+      </tr>
+      <tr>
+        <td><strong>Best for</strong></td>
+        <td>Personal notes</td>
+        <td>Decision speed</td>
+        <td>Local knowledge</td>
+        <td>Visual delight</td>
+        <td>Evening vibe</td>
+        <td>Friend trust</td>
+      </tr>
+      <tr>
+        <td><strong>Implementation</strong></td>
+        <td>Straightforward</td>
+        <td>Moderate</td>
+        <td>Complex (geo)</td>
+        <td>Moderate</td>
+        <td>Moderate</td>
+        <td>Moderate</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div style="text-align:center; padding:0 24px 80px; max-width: 600px; margin: 0 auto;">
+  <h3 style="margin-bottom:8px;">Which direction speaks to you?</h3>
+  <p style="color:var(--text-secondary); font-size:15px;">Pick a favorite, combine elements from multiple directions, or request modifications. This decision guides all detailed design work.</p>
+</div>
+
+<script>
+function showDirection(n) {
+  document.querySelectorAll('.direction-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.direction-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('d' + n).classList.add('active');
+  document.querySelectorAll('.direction-nav button')[n - 1].classList.add('active');
+  window.scrollTo({ top: document.getElementById('d' + n).offsetTop - 100, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
