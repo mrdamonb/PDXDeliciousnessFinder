@@ -52,7 +52,7 @@ The product is Portland-specific by design. City expansion is a future decision,
 | **Domain** | General — consumer lifestyle, food & dining |
 | **Complexity** | Medium — social sync architecture, share extension, multi-source data enrichment |
 | **Project Context** | Greenfield |
-| **Platform** | iOS-only at launch; Apple Sign In for auth; multi-device via shared database |
+| **Platform** | iOS-only at launch; email + password via Supabase Auth for v1 (TestFlight); Sign in with Apple optional when targeting App Store |
 | **Scope** | Portland-first; city expansion is a post-launch decision |
 
 ## Success Criteria
@@ -75,7 +75,7 @@ The product is Portland-specific by design. City expansion is a future decision,
 ### Technical Success
 
 - iOS share extension functions correctly from Safari, Chrome, Google Maps, Yelp, and restaurant websites
-- Apple Sign In + database backend supports seamless multi-device use (install on new device, data fully restored)
+- Supabase Auth (email/password for v1) + database backend supports seamless multi-device use (install on new device, sign in with the same account, data fully restored)
 - Friend list sync delivers a new restaurant addition to a synced friend's map within 60 seconds
 - App is installable via TestFlight for Phase 1–2; App Store submission is a Phase 3 decision
 - App handles offline gracefully: existing list and map readable without a connection; adds queued and synced when back online
@@ -118,11 +118,11 @@ Two weeks later she goes. She marks it visited, adds her own note, and stars it 
 ### Journey 3: The Incoming Friend — First-Time User
 **Persona: Jamie** — receives a TestFlight invite from Damon, has never heard of the app
 
-Jamie gets a text: *"Hey, I'm using this app to track Portland restaurants — want to join so we can share lists?"* She taps the TestFlight link, installs, opens the app. Apple Sign In — one tap, done. The app shows her an empty map and a single prompt: *"Add your first restaurant."* She tries the manual form, adds Nong's Khao Man Gai from memory (name + address). Then she discovers the share extension while browsing Eater PDX — shares a restaurant URL, sees the confirmation card auto-fill everything, and is immediately converted. Within 30 minutes she has 8 restaurants in her list.
+Jamie gets a text: *"Hey, I'm using this app to track Portland restaurants — want to join so we can share lists?"* She taps the TestFlight link, installs, opens the app. She signs up with email and password (or signs in if she already has an account). The app shows her an empty map and a single prompt: *"Add your first restaurant."* She tries the manual form, adds Nong's Khao Man Gai from memory (name + address). Then she discovers the share extension while browsing Eater PDX — shares a restaurant URL, sees the confirmation card auto-fill everything, and is immediately converted. Within 30 minutes she has 8 restaurants in her list.
 
 She accepts Damon's friend request, browses his Favorites tab, and recognizes 6 places she's already been to. She starts syncing his list. Her map immediately fills with his Want to Go pins.
 
-**Capabilities revealed:** Onboarding flow, Apple Sign In, empty state prompt, manual add form, share extension discovery, friend invite acceptance, Friends tab browse, sync toggle.
+**Capabilities revealed:** Onboarding flow, email/password sign-up and sign-in, empty state prompt, manual add form, share extension discovery, friend invite acceptance, Friends tab browse, sync toggle.
 
 ---
 
@@ -158,7 +158,7 @@ Damon opens his map and notices Luce has a "Want to Go" pin. He remembers readin
 | Friend badge on map pins | Journey 2 |
 | Friends tab (browse a friend's list) | Journeys 2, 3 |
 | Onboarding + empty state | Journey 3 |
-| Apple Sign In | Journey 3 |
+| Email/password auth (Supabase) | Journey 3 |
 | Manual add form | Journey 3 |
 | Delete / edit restaurant | Journey 5 |
 
@@ -234,7 +234,7 @@ The app must remain functional without a network connection for the primary read
 
 ### App Store Compliance
 
-- **Apple Sign In:** Already the only auth method — satisfies App Store guideline 4.8 with no additional work
+- **Authentication & guideline 4.8:** For v1 (TestFlight), email + password via Supabase Auth is sufficient. When submitting to the App Store, if the app offers third-party or email-based login, Apple may require offering Sign in with Apple per guideline 4.8 — plan to add Sign in with Apple before App Store release if still applicable.
 - **Privacy manifest:** Required for iOS 17+ apps using certain APIs; must declare data collection practices before App Store submission
 - **Share extension entitlements:** Requires App Groups entitlement to share data container between main app and extension — must be configured in Apple Developer portal
 - **TestFlight beta limit:** 10,000 external testers maximum; sufficient for Phase 1–2
@@ -267,7 +267,7 @@ The goal of Phase 1 is not to validate a market — it's to validate that PDX De
 4. Map view — MapKit, color + icon pins, tap to open card
 5. List view — filterable by status, venue type, neighborhood, cuisine, price
 6. Restaurant card — view, edit, mark visited, add notes, delete
-7. Apple Sign In + multi-device database sync
+7. Email/password auth (Supabase) + multi-device database sync
 8. Social layer v1 — invite, connect/sync states, Friends tab, friend badge, daily digest notification
 
 **Not in MVP (no matter how tempting):**
@@ -381,8 +381,8 @@ The goal of Phase 1 is not to validate a market — it's to validate that PDX De
 
 ### User Account & Settings
 
-- **FR42:** Users can create an account using Apple Sign In
-- **FR43:** Users can access their complete data on any iOS device using the same Apple ID
+- **FR42:** Users can create an account and sign in using email and password (Supabase Auth); Sign in with Apple may be added before App Store submission
+- **FR43:** Users can access their complete data on any iOS device using the same account (same email / Supabase user)
 - **FR44:** The system syncs user data across devices in real time via a cloud database
 - **FR45:** Users can manage notification preferences within the app
 - **FR46:** Users can view and manage all friend connections, including connected and synced states
@@ -402,7 +402,7 @@ The goal of Phase 1 is not to validate a market — it's to validate that PDX De
 
 - All data transmitted between device and backend is encrypted in transit (TLS 1.2+)
 - All user data stored in the backend database is encrypted at rest
-- Authentication is handled exclusively via Apple Sign In; no passwords are stored or managed by the app
+- For v1, authentication uses email and password via Supabase Auth; credentials are not stored in the app (Supabase handles them). Sign in with Apple is out of scope for v1 TestFlight and optional before App Store if required by guideline 4.8
 - User restaurant lists and notes are private by default; accessible only to the account owner and explicitly connected friends
 - Friend connections require mutual acceptance before any data is shared; no user can access another's list without permission
 

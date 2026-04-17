@@ -1,0 +1,82 @@
+# generated: 2026-04-15
+# last_updated: 2026-04-15
+# project: PDX Deliciousness Finder
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Mark epic as 'in-progress' when starting work on its first story
+# - SM typically creates next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
+
+generated: 2026-04-15
+last_updated: 2026-04-15  # reconciled epics 3; 4-1 story created; 4-1 sprint-status synced to review
+project: PDX Deliciousness Finder
+project_key: NOKEY
+tracking_system: file-system
+story_location: "_bmad-output/implementation-artifacts"
+
+development_status:
+
+  # ─── Epic 1: Signed In & Ready ──────────────────────────────────────────────
+  epic-1: done
+  1-1-app-foundation-and-email-sign-in: done
+  1-2-swiftdata-core-storage-layer: done
+  1-3-offline-write-queue-outbound-sync: done
+  1-4-realtime-inbound-sync-multi-device: done
+  epic-1-retrospective: optional
+
+  # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────
+  epic-2: done
+  2-1-add-a-restaurant-manually: done
+  2-2-view-your-restaurant-list: done
+  2-3-edit-a-restaurants-details: done
+  2-4-set-restaurant-status: done
+  2-5-log-visits-and-notes: done
+  2-6-delete-a-restaurant: done
+  epic-2-retrospective: optional
+
+  # ─── Epic 3: Find What to Eat Tonight ───────────────────────────────────────
+  epic-3: done
+  3-1-portland-map-with-restaurant-pins: done
+  3-2-filter-the-map: done
+  3-3-restaurant-list-view-with-filters: done
+  3-4-neighborhood-detection: done
+  epic-3-retrospective: optional
+
+  # ─── Epic 4: Add Restaurants Instantly ──────────────────────────────────────
+  epic-4: in-progress
+  4-1-share-extension-and-schemaorg-enrichment: done
+  4-2-places-api-fallback-via-edge-function: backlog
+  4-3-search-to-add-within-the-app: backlog
+  epic-4-retrospective: optional
+
+  # ─── Epic 5: Your Trusted Circle ────────────────────────────────────────────
+  epic-5: backlog
+  5-1-invite-and-connect-with-friends: backlog
+  5-2-browse-a-friends-restaurant-list: backlog
+  5-3-add-a-friends-restaurant-to-my-list: backlog
+  5-4-sync-a-friends-new-additions-to-my-map: backlog
+  5-5-friend-notifications: backlog
+  5-6-manage-friend-connections-and-settings: backlog
+  epic-5-retrospective: optional

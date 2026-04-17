@@ -1,0 +1,18 @@
+// PDX Deliciousness Finder — Supabase Configuration
+//
+// SETUP:
+//   1. Copy this file to Config.xcconfig in the same folder.
+//   2. Fill in your Supabase project values below.
+//   3. In Xcode, select the PROJECT (not target) → Info tab →
+//      Configurations → expand Debug and Release → set both to "Config".
+//   4. In your target's Info.plist (or Build Settings → Custom), add:
+//        SUPABASE_HOST      = $(SUPABASE_HOST)
+//        SUPABASE_ANON_KEY  = $(SUPABASE_ANON_KEY)
+//
+// NOTE: Store only the hostname (no https://). The app prepends the scheme
+// at runtime to avoid xcconfig treating // as a comment character.
+//
+// Config.xcconfig is listed in .gitignore — never commit real keys.
+
+SUPABASE_HOST = your-project-ref.supabase.co
+SUPABASE_ANON_KEY = your-anon-key-here

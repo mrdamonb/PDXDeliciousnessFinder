@@ -683,7 +683,7 @@ Optimizes for time-to-first-pin over feature education. No onboarding carousel.
 ```mermaid
 flowchart TD
     A([User receives TestFlight\ninvite link]) --> B[Installs + opens app]
-    B --> C[Apple Sign In\nOne tap — no form]
+    B --> C[Email + password\nSign up or sign in\nSupabase Auth]
     C --> D[Empty map state\nWarm prompt: your Portland\nfood map starts here]
     D --> E{How does user\nwant to add?}
     E -->|Share extension\ndiscovery| F[Leaves app, finds\nrestaurant URL anywhere]
@@ -709,7 +709,7 @@ flowchart TD
 ```
 
 **Key UX decisions:**
-- Apple Sign In is the only onboarding step — no profile setup, no upfront permission requests
+- Email/password is the only v1 onboarding auth step (TestFlight) — minimal fields, inline validation for format and failed sign-in; no profile setup, no upfront permission requests. Sign in with Apple may be added before App Store if required.
 - Empty state teaches by doing, not by explaining
 - All three add paths land on the same confirmation card
 - Friend sync toggle presented at connection time, not buried in settings
@@ -845,17 +845,19 @@ Seven custom components cover everything the native system can't. Each is design
 **Anatomy:**
 - Upright teardrop SVG shape (34×42pt standard, 38×46pt favorite)
 - Status fill color (amber / green / red)
-- SF Symbol icon inside — venue type for Want/Fav, checkmark for Been There
+- SF Symbol icon inside — **venue type icon for all statuses** (Want to Go, Been There, Favorite)
 - Optional: star above pin (favorites only)
 - Optional: friend badge — purple circle, bottom-right, white border (synced friend additions)
+
+> **Design note (validated 2026-04-15):** Been There pins originally used a checkmark icon per the initial spec. User testing showed this made it impossible to distinguish venue type at a glance — a green checkmark reads the same whether it's a bar, brewery, or food cart. The venue type icon is retained on Been There pins; green fill color carries the status signal. Status is conveyed through both color AND icon shape (venue type), not color alone — colorblind accessibility is maintained because venue type icons differ from each other.
 
 **States:**
 
 | State | Visual |
 |---|---|
-| Default | Status color fill, venue icon |
-| Favorite | Larger size, red fill, venue icon, star above |
-| Been There | Green fill, checkmark icon |
+| Default (Want to Go) | Amber fill, venue type icon |
+| Favorite | Larger size, red fill, venue type icon, star above |
+| Been There | Green fill, venue type icon |
 | Friend attribution | Any state + purple friend badge |
 | Selected (tapped) | Subtle scale-up animation, accent ring |
 | Filtered out | **Fade to 30% opacity — never hide/show** (hide triggers annotation reload causing visible map flicker, breaking the <500ms filter promise) |
@@ -897,19 +899,33 @@ Seven custom components cover everything the native system can't. Each is design
 
 **Purpose:** Always-visible, combinable, instant-response filter controls. The primary decision tool for map and list views.
 
-**Anatomy:**
-- Horizontal `ScrollView` (no visible scrollbar)
-- Individual pills: 8pt vertical padding, 16pt horizontal, fully rounded (100pt radius)
-- Inactive state: white background, `PDXBorder` stroke, `PDXTextSecondary` label
-- Active state: `PDXAccent` fill, white label
-- Multiple pills active simultaneously (combinable filters)
-- "× Clear" pill appears at left when any filter is active
+**Interaction model: two-level (category → pills)**
 
-**Filter dimensions:** Status · Venue Type · Neighborhood · Price · Cuisine
+The bar operates in two modes to prevent pill overflow as neighborhood and cuisine options grow:
+
+**Category mode (default):**
+- One chip per filter dimension: Status · Venue · Neighborhood · Cuisine · Price
+- Inactive chip: outlined capsule, `PDXAccent` stroke and label, chevron ▾
+- Active chip: `PDXAccent` fill, white label, count badge (e.g. "Status 2 ▾")
+- Neighborhood and Cuisine chips hidden when no restaurants have those fields set
+- "Clear" chip appears at right when any filters are active
+- Tapping a chip drills into that category's pills
+
+**Expanded mode:**
+- Back arrow (←) returns to category mode
+- Pills for the selected category only — no overflow
+- Status pills use per-status color (amber/green/red) for active fill; all others use `PDXAccent`
+- Tapping a pill toggles it; user can tap back without losing selections
+
+**Pill anatomy:** 8pt vertical padding, 12–16pt horizontal, fully rounded capsule, 1.5pt stroke when inactive.
+
+**Never use a modal filter screen** — all filter interaction stays inline in the bar, one-handed, without interrupting the map.
+
+**Filter dimensions:** Status · Venue Type · Neighborhood · Cuisine · Price
 
 **Behavior:** Filter changes apply immediately — no Apply button, no modal. `PDXFilterStrip` reads and writes to `FilterState` but **does not own it**. `FilterState` is owned by `AppState`, injected via SwiftUI environment, and observed by both `MapViewModel` and `ListViewModel`. Switching tabs preserves active filter state.
 
-**Accessibility:** Each pill includes active state in label: "Want to Go filter, active" / "SE Portland filter, inactive"
+**Accessibility:** Each chip/pill includes active state in label: "Want to Go filter, active" / "SE Portland filter, inactive"
 
 #### 4. Restaurant Detail Card (`PDXDetailCard`)
 

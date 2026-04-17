@@ -57,8 +57,8 @@ FR38: Users can add a friend's restaurant from the Friends tab into their own pe
 FR39: Users receive a daily digest notification summarizing new restaurants added by synced friends
 FR40: Users can opt out of the daily digest notification
 FR41: Users receive an immediate notification when a friend invitation is received or accepted
-FR42: Users can create an account using Apple Sign In
-FR43: Users can access their complete data on any iOS device using the same Apple ID
+FR42: Users can create an account and sign in using email and password (Supabase Auth); Sign in with Apple may be added before App Store submission
+FR43: Users can access their complete data on any iOS device using the same account (same email / Supabase user)
 FR44: The system syncs user data across devices in real time via a cloud database
 FR45: Users can manage notification preferences within the app
 FR46: Users can view and manage all friend connections, including connected and synced states
@@ -73,7 +73,7 @@ NFR4: App cold start to usable map view in under 3 seconds
 NFR5: Friend sync delivers new additions to a synced user's map within 60 seconds of the friend saving a restaurant
 NFR6: All data transmitted between device and backend is encrypted in transit (TLS 1.2+)
 NFR7: All user data stored in the backend database is encrypted at rest
-NFR8: Authentication is handled exclusively via Apple Sign In; no passwords are stored or managed by the app
+NFR8: For v1, authentication uses email and password via Supabase Auth; credentials are not stored in the app (Supabase handles them). Sign in with Apple is out of scope for v1 TestFlight and optional before App Store if required by guideline 4.8
 NFR9: User restaurant lists and notes are private by default; accessible only to the account owner and explicitly connected friends
 NFR10: Friend connections require mutual acceptance before any data is shared; no user can access another's list without permission
 NFR11: Backend architecture supports scaling to 10,000 active users without requiring architectural changes
@@ -175,7 +175,7 @@ UX-DR10: Design system: consistent color tokens for status colors (Want to Go / 
 | FR39 | Epic 5 | Daily digest notification |
 | FR40 | Epic 5 | Opt out of digest |
 | FR41 | Epic 5 | Immediate invite notifications |
-| FR42 | Epic 1 | Apple Sign In |
+| FR42 | Epic 1 | Email/password sign-up and sign-in (Supabase) |
 | FR43 | Epic 1 | Multi-device access |
 | FR44 | Epic 1 | Real-time cloud sync |
 | FR45 | Epic 5 | Notification preferences |
@@ -185,7 +185,7 @@ UX-DR10: Design system: consistent color tokens for status colors (Want to Go / 
 ## Epic List
 
 ### Epic 1: Signed In & Ready
-Users can install the app, sign in with Apple in one tap, and land in a functional shell that persists their session across devices and app launches. The foundational storage and sync infrastructure (SwiftData, SyncQueue, Core/Storage/Repositories) is in place so every subsequent epic builds on a solid foundation.
+Users can install the app, create an account or sign in with email and password, and land in a functional shell that persists their session across devices and app launches. The foundational storage and sync infrastructure (SwiftData, SyncQueue, Core/Storage/Repositories) is in place so every subsequent epic builds on a solid foundation.
 **FRs covered:** FR42, FR43, FR44
 **Also covers:** ARCH-1 through ARCH-15 (Xcode project, App Groups, SwiftData models, SyncQueue, Core/Sync, repositories pattern)
 
@@ -209,26 +209,26 @@ Users can invite friends, browse a friend's restaurant list in a dedicated Frien
 
 ## Epic 1: Signed In & Ready
 
-Users can install the app, sign in with Apple in one tap, and have their session persist across devices and app launches. The foundational storage and sync infrastructure (SwiftData, SyncQueue, Core/Storage/Repositories) is in place so every subsequent epic builds on a solid foundation.
+Users can install the app, sign up or sign in with email and password, and have their session persist across devices and app launches. The foundational storage and sync infrastructure (SwiftData, SyncQueue, Core/Storage/Repositories) is in place so every subsequent epic builds on a solid foundation.
 
 **FRs covered:** FR42, FR43, FR44
 **NFRs:** NFR8, NFR20, NFR21
 **Also covers:** ARCH-1 through ARCH-15
 
-### Story 1.1: App Foundation & Apple Sign In
+### Story 1.1: App Foundation & Email Sign-In
 
 As a Portland food enthusiast,
-I want to open the app, sign in with Apple in one tap, and have my session persist across app launches,
-So that I can start using the app immediately and never have to sign in again.
+I want to sign up or sign in with my email and password and have my session persist across app launches,
+So that I can start using the app on TestFlight without a paid Apple Developer account and still sync across devices with the same account.
 
 **Acceptance Criteria:**
 
 **Given** the app is freshly installed
 **When** I open it
-**Then** I see an onboarding screen with a "Sign in with Apple" button and no other sign-in options
+**Then** I see an onboarding screen with email and password fields (and a clear path to create an account if I am new)
 
-**Given** I tap "Sign in with Apple"
-**When** I authenticate with my Apple ID
+**Given** I enter a valid email and password and submit sign-in (or complete sign-up if I am new)
+**When** Supabase authentication succeeds
 **Then** I am taken to the app's home screen
 
 **Given** I have previously signed in
@@ -243,9 +243,9 @@ So that I can start using the app immediately and never have to sign in again.
 **When** any Supabase client call is made
 **Then** it routes to the pdx-dev project using credentials loaded from Config.xcconfig (not hardcoded in Swift)
 
-**Given** a new user signs in for the first time
-**When** Apple authentication succeeds
-**Then** a user profile row is automatically created in the public.users table via the handle_new_user trigger
+**Given** a new user authenticates for the first time
+**When** authentication succeeds
+**Then** a user profile row is automatically created in the public.users table via the handle_new_user trigger (on any `auth.users` insert, regardless of provider)
 
 *Covers: FR42, NFR8, ARCH-1, ARCH-14*
 

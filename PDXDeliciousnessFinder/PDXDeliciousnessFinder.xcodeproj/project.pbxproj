@@ -6,14 +6,117 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B8B0E4C12F86C80A00263322 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B8B0E4BE2F86C80A00263322 /* Config.xcconfig */; };
+		B8B0E4C22F86C80A00263322 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = B8B0E4BF2F86C80A00263322 /* Config.xcconfig.example */; };
+		B8B0E4C62F86CBC100263322 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = B8B0E4C52F86CBC100263322 /* Supabase */; };
+		B8C4625B2F905E1700343512 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B8C462512F905E1700343512 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B8C462642F90629300343512 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B8C462632F90629300343512 /* SwiftSoup */; };
+		B8C462662F9062D000343512 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B8C462652F9062D000343512 /* SwiftSoup */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B8C462592F905E1700343512 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B8B0E4882F86C64100263322 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B8C462502F905E1700343512;
+			remoteInfo = ShareExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B8C462602F905E1700343512 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B8C4625B2F905E1700343512 /* ShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		B8B0E4902F86C64100263322 /* PDXDeliciousnessFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PDXDeliciousnessFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8B0E4BE2F86C80A00263322 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		B8B0E4BF2F86C80A00263322 /* Config.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.xcconfig.example; sourceTree = "<group>"; };
+		B8C462512F905E1700343512 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B8B0E4C82F86CE1400263322 /* Exceptions for "PDXDeliciousnessFinder" folder in "PDXDeliciousnessFinder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B8B0E48F2F86C64100263322 /* PDXDeliciousnessFinder */;
+		};
+		B8C4625F2F905E1700343512 /* Exceptions for "ShareExtension" folder in "ShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B8C462502F905E1700343512 /* ShareExtension */;
+		};
+		C9D8E7F6A5B4C3D2E1F00001 /* Exceptions for "PDXDeliciousnessFinder" folder in "ShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/AppState.swift,
+				App/PDXDeliciousnessFinder.swift,
+				Assets.xcassets,
+				Core/AppError.swift,
+				Core/Network/DTOs/RestaurantDTO.swift,
+				Core/Network/DTOs/VisitLogDTO.swift,
+				Core/Network/SupabaseClient.swift,
+				Core/Services/NeighborhoodService.swift,
+				Core/Storage/Repositories/RestaurantRepository.swift,
+				Core/Storage/Repositories/VisitLogRepository.swift,
+				Core/Sync/NetworkMonitor.swift,
+				Core/Sync/RealtimeSubscriptions.swift,
+				Core/Sync/SyncQueue.swift,
+				Core/ViewState.swift,
+				Features/Home/HomeView.swift,
+				Features/Map/MapView.swift,
+				Features/Map/MapViewModel.swift,
+				Features/Onboarding/OnboardingView.swift,
+				Features/RestaurantDetail/AddRestaurantView.swift,
+				Features/RestaurantDetail/AddRestaurantViewModel.swift,
+				Features/RestaurantDetail/AddVisitView.swift,
+				Features/RestaurantDetail/EditRestaurantView.swift,
+				Features/RestaurantDetail/RestaurantDetailView.swift,
+				Features/RestaurantDetail/RestaurantDetailViewModel.swift,
+				Features/RestaurantList/RestaurantListView.swift,
+				Features/RestaurantList/RestaurantRowView.swift,
+				Info.plist,
+				"Resources/portland-neighborhoods.geojson",
+				UI/Components/FilterBarView.swift,
+				UI/Components/FilterPillView.swift,
+				UI/Components/PDXMapPin.swift,
+				UI/Components/StatusBadgeView.swift,
+			);
+			target = B8C462502F905E1700343512 /* ShareExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B8B0E4922F86C64100263322 /* PDXDeliciousnessFinder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B8B0E4C82F86CE1400263322 /* Exceptions for "PDXDeliciousnessFinder" folder in "PDXDeliciousnessFinder" target */,
+				C9D8E7F6A5B4C3D2E1F00001 /* Exceptions for "PDXDeliciousnessFinder" folder in "ShareExtension" target */,
+			);
 			path = PDXDeliciousnessFinder;
+			sourceTree = "<group>";
+		};
+		B8C462522F905E1700343512 /* ShareExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B8C4625F2F905E1700343512 /* Exceptions for "ShareExtension" folder in "ShareExtension" target */,
+			);
+			path = ShareExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +126,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B8B0E4C62F86CBC100263322 /* Supabase in Frameworks */,
+				B8C462642F90629300343512 /* SwiftSoup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B8C4624E2F905E1700343512 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8C462662F9062D000343512 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,7 +146,10 @@
 			isa = PBXGroup;
 			children = (
 				B8B0E4922F86C64100263322 /* PDXDeliciousnessFinder */,
+				B8C462522F905E1700343512 /* ShareExtension */,
 				B8B0E4912F86C64100263322 /* Products */,
+				B8B0E4C02F86C80A00263322 /* Config */,
+				B8B0E4C42F86CBC100263322 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -41,8 +157,25 @@
 			isa = PBXGroup;
 			children = (
 				B8B0E4902F86C64100263322 /* PDXDeliciousnessFinder.app */,
+				B8C462512F905E1700343512 /* ShareExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B8B0E4C02F86C80A00263322 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				B8B0E4BE2F86C80A00263322 /* Config.xcconfig */,
+				B8B0E4BF2F86C80A00263322 /* Config.xcconfig.example */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		B8B0E4C42F86CBC100263322 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -55,6 +188,32 @@
 				B8B0E48C2F86C64100263322 /* Sources */,
 				B8B0E48D2F86C64100263322 /* Frameworks */,
 				B8B0E48E2F86C64100263322 /* Resources */,
+				B8C462602F905E1700343512 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B8C4625A2F905E1700343512 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B8B0E4922F86C64100263322 /* PDXDeliciousnessFinder */,
+			);
+			name = PDXDeliciousnessFinder;
+			packageProductDependencies = (
+				B8B0E4C52F86CBC100263322 /* Supabase */,
+				B8C462632F90629300343512 /* SwiftSoup */,
+			);
+			productName = PDXDeliciousnessFinder;
+			productReference = B8B0E4902F86C64100263322 /* PDXDeliciousnessFinder.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B8C462502F905E1700343512 /* ShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B8C4625C2F905E1700343512 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
+			buildPhases = (
+				B8C4624D2F905E1700343512 /* Sources */,
+				B8C4624E2F905E1700343512 /* Frameworks */,
+				B8C4624F2F905E1700343512 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -62,13 +221,15 @@
 			);
 			fileSystemSynchronizedGroups = (
 				B8B0E4922F86C64100263322 /* PDXDeliciousnessFinder */,
+				B8C462522F905E1700343512 /* ShareExtension */,
 			);
-			name = PDXDeliciousnessFinder;
+			name = ShareExtension;
 			packageProductDependencies = (
+				B8C462652F9062D000343512 /* SwiftSoup */,
 			);
-			productName = PDXDeliciousnessFinder;
-			productReference = B8B0E4902F86C64100263322 /* PDXDeliciousnessFinder.app */;
-			productType = "com.apple.product-type.application";
+			productName = ShareExtension;
+			productReference = B8C462512F905E1700343512 /* ShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +244,9 @@
 					B8B0E48F2F86C64100263322 = {
 						CreatedOnToolsVersion = 26.4;
 					};
+					B8C462502F905E1700343512 = {
+						CreatedOnToolsVersion = 26.4;
+					};
 				};
 			};
 			buildConfigurationList = B8B0E48B2F86C64100263322 /* Build configuration list for PBXProject "PDXDeliciousnessFinder" */;
@@ -94,18 +258,32 @@
 			);
 			mainGroup = B8B0E4872F86C64100263322;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B8B0E4C32F86CA2300263322 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				B8C462622F90629300343512 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B8B0E4912F86C64100263322 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				B8B0E48F2F86C64100263322 /* PDXDeliciousnessFinder */,
+				B8C462502F905E1700343512 /* ShareExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B8B0E48E2F86C64100263322 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8B0E4C12F86C80A00263322 /* Config.xcconfig in Resources */,
+				B8B0E4C22F86C80A00263322 /* Config.xcconfig.example in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B8C4624F2F905E1700343512 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +300,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B8C4624D2F905E1700343512 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B8C4625A2F905E1700343512 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B8C462502F905E1700343512 /* ShareExtension */;
+			targetProxy = B8C462592F905E1700343512 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B8B0E4992F86C64600263322 /* Debug */ = {
@@ -248,19 +441,21 @@
 		};
 		B8B0E49C2F86C64600263322 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B8B0E4BE2F86C80A00263322 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PDXDeliciousnessFinder/PDXDeliciousnessFinder.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4W7C8GMNM7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PDXDeliciousnessFinder/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -280,19 +475,21 @@
 		};
 		B8B0E49D2F86C64600263322 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B8B0E4BE2F86C80A00263322 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PDXDeliciousnessFinder/PDXDeliciousnessFinder.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4W7C8GMNM7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PDXDeliciousnessFinder/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -300,6 +497,68 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.damonbrennen.PDXDeliciousnessFinder;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B8C4625D2F905E1700343512 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B8B0E4BE2F86C80A00263322 /* Config.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4W7C8GMNM7;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.damonbrennen.PDXDeliciousnessFinder.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B8C4625E2F905E1700343512 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B8B0E4BE2F86C80A00263322 /* Config.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4W7C8GMNM7;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.damonbrennen.PDXDeliciousnessFinder.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -331,7 +590,53 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B8C4625C2F905E1700343512 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B8C4625D2F905E1700343512 /* Debug */,
+				B8C4625E2F905E1700343512 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B8B0E4C32F86CA2300263322 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = exactVersion;
+				version = 2.5.1;
+			};
+		};
+		B8C462622F90629300343512 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.13.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B8B0E4C52F86CBC100263322 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B8B0E4C32F86CA2300263322 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		B8C462632F90629300343512 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B8C462622F90629300343512 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+		B8C462652F9062D000343512 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B8C462622F90629300343512 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B8B0E4882F86C64100263322 /* Project object */;
 }
