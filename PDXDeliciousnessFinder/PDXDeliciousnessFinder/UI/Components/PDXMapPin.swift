@@ -20,8 +20,8 @@ import MapKit
 /// - Large (Favorite): 38×46 pt
 struct PDXMapPin: View {
     let restaurant: Restaurant
-    /// When `true`, the pin renders at 30 % opacity (filtered-out state for Story 3.2+).
-    /// Never remove the annotation from the map — that causes flicker.
+    /// When `true`, the pin is hidden (filtered-out state). Using opacity 0 instead of
+    /// removing the annotation avoids MapKit flicker on filter changes.
     var isFilteredOut: Bool = false
 
     private var isFavorite: Bool { restaurant.status == .favorite }
@@ -60,7 +60,7 @@ struct PDXMapPin: View {
         // Transparent tap-target overlay — required for reliable MapKit hit-testing
         .contentShape(Rectangle())
         .frame(width: max(pinWidth, 44), height: max(pinHeight + (isFavorite ? 14 : 0), 44))
-        .opacity(isFilteredOut ? 0.3 : 1.0)
+        .opacity(isFilteredOut ? 0.0 : 1.0)
         .accessibilityLabel(accessibilityLabel)
     }
 

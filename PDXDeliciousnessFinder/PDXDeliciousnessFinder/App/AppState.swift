@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import SwiftData
 import Supabase
+import CoreLocation
 
 @Observable
 @MainActor
@@ -57,6 +58,15 @@ final class AppState {
             if isLoading { isLoading = false }
         }
     }
+
+    // MARK: - Navigation state
+
+    /// Set to switch to the map tab programmatically (0 = map, 1 = list).
+    var selectedTab: Int = 0
+    /// Coordinate for MapView to zoom to; pair with mapFocusTrigger.
+    var mapFocusCoordinate: CLLocationCoordinate2D?
+    /// Incrementing this causes MapView to animate to mapFocusCoordinate.
+    var mapFocusTrigger: Int = 0
 
     // MARK: - Filter state (shared between Map and List tabs)
 

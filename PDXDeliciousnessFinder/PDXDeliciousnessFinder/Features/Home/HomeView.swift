@@ -13,9 +13,11 @@ struct HomeView: View {
 
     var body: some View {
         if let userId = appState.currentUser?.id {
-            TabView {
+            @Bindable var appState = appState
+            TabView(selection: $appState.selectedTab) {
                 MapView(userId: userId)
                     .tabItem { Label("Map", systemImage: "map") }
+                    .tag(0)
 
                 NavigationStack {
                     RestaurantListView(userId: userId)
@@ -28,6 +30,7 @@ struct HomeView: View {
                         }
                 }
                 .tabItem { Label("List", systemImage: "list.bullet") }
+                .tag(1)
             }
         }
     }

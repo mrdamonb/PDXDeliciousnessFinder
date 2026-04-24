@@ -10,6 +10,7 @@ final class ShareViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackground
+        preferredContentSize = CGSize(width: UIScreen.main.bounds.width, height: 520)
 
         let rootView = ShareExtensionView(extensionContext: extensionContext)
         let hosting = UIHostingController(rootView: rootView)

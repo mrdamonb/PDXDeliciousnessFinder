@@ -1,7 +1,6 @@
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
-import Network
 import MapKit
 
 /// The SwiftUI root view for the PDX Deliciousness Finder share extension.
@@ -106,6 +105,7 @@ struct ShareExtensionView: View {
         var seen = Set<String>()
         return all
             .compactMap(\.cuisine)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
             .sorted()
     }
@@ -113,45 +113,41 @@ struct ShareExtensionView: View {
     // MARK: - URL extraction
 
     private func loadURL() async {
-        // Check sign-in state via shared UserDefaults
         guard let _ = userIdFromDefaults() else {
             phase = .notSignedIn
             return
         }
 
         guard let url = await extractURL() else {
-            // No URL found — show empty card anyway (graceful degradation)
             phase = .ready(EnrichmentResult(sourceUrl: ""))
             return
         }
 
-        var schemaResult = await SchemaOrgParser().parse(url: url)
+        let urlOnly = EnrichmentResult(sourceUrl: url.absoluteString)
+        phase = .enriching(urlOnly)
+
+        // Fire schema.org fetch and Places enrichment in parallel — both only need the URL.
+        async let schemaTask = SchemaOrgParser().parse(url: url)
+        async let enrichTask = PlacesEnrichmentService().enrich(from: urlOnly)
+        var (schema, enriched) = await (schemaTask, enrichTask)
+
         // If the page had no schema.org website field, the shared URL itself is the website.
-        if schemaResult.website == nil, !schemaResult.sourceUrl.isEmpty {
-            schemaResult.website = schemaResult.sourceUrl
+        if schema.website == nil, !schema.sourceUrl.isEmpty {
+            schema.website = schema.sourceUrl
         }
 
-        // Skip Places enrichment only if schema.org gave us a complete record
-        // (name + address + coordinates). Missing coordinates means no map pin,
-        // and Yelp also fills cuisine/price which schema.org often omits.
-        let schemaIsComplete = schemaResult.name != nil
-            && schemaResult.address != nil
-            && schemaResult.latitude != nil
-            && schemaResult.longitude != nil
-        guard !schemaIsComplete else {
-            phase = .ready(schemaResult)
-            return
-        }
+        // Merge: schema.org wins where it found data; edge function fills nil gaps.
+        var merged = enriched
+        merged.name      = schema.name      ?? enriched.name
+        merged.address   = schema.address   ?? enriched.address
+        merged.latitude  = schema.latitude  ?? enriched.latitude
+        merged.longitude = schema.longitude ?? enriched.longitude
+        merged.website   = schema.website   ?? enriched.website
+        merged.cuisine   = schema.cuisine   ?? enriched.cuisine
+        merged.venueType = schema.venueType ?? enriched.venueType
+        merged.priceRange = schema.priceRange ?? enriched.priceRange
 
-        // Skip Places enrichment if offline
-        guard isNetworkAvailable() else {
-            phase = .ready(schemaResult)
-            return
-        }
-
-        phase = .enriching(schemaResult)
-        let enriched = await PlacesEnrichmentService().enrich(from: schemaResult)
-        phase = .ready(await geocodingIfNeeded(enriched))
+        phase = .ready(await geocodingIfNeeded(merged))
     }
 
     private func extractURL() async -> URL? {
@@ -289,22 +285,6 @@ struct ShareExtensionView: View {
     }
 
     // MARK: - Network check
-
-    /// One-shot synchronous connectivity check using NWPathMonitor.
-    /// Safe to call from within `.task { await loadURL() }` (off main thread).
-    private func isNetworkAvailable() -> Bool {
-        let monitor = NWPathMonitor()
-        let sema = DispatchSemaphore(value: 0)
-        var isAvailable = false
-        monitor.pathUpdateHandler = { path in
-            isAvailable = path.status == .satisfied
-            sema.signal()
-        }
-        monitor.start(queue: DispatchQueue(label: "network-check"))
-        sema.wait()
-        monitor.cancel()
-        return isAvailable
-    }
 
     private func cancel() {
         extensionContext?.cancelRequest(

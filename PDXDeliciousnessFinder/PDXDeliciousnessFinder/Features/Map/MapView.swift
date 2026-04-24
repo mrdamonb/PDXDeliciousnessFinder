@@ -40,7 +40,6 @@ struct MapView: View {
         let filteredIds = Set(restaurants.filter { appState.isFiltered($0) }.map(\.id))
 
         Map(position: $cameraPosition) {
-            UserAnnotation()
             ForEach(restaurants) { restaurant in
                 if let coord = restaurant.coordinate {
                     Annotation(restaurant.name, coordinate: coord) {
@@ -55,6 +54,7 @@ struct MapView: View {
                     .annotationTitles(.hidden)
                 }
             }
+            UserAnnotation()
         }
         .mapStyle(.standard(elevation: .flat))
         .ignoresSafeArea(edges: .top)
@@ -123,6 +123,16 @@ struct MapView: View {
                     span: MKCoordinateSpan(latitudeDelta: 0.10, longitudeDelta: 0.10)
                 ))
             }
+        }
+        .onChange(of: appState.mapFocusTrigger) { _, _ in
+            guard let coord = appState.mapFocusCoordinate else { return }
+            withAnimation {
+                cameraPosition = .region(MKCoordinateRegion(
+                    center: coord,
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                ))
+            }
+            appState.mapFocusCoordinate = nil
         }
         .task {
             viewModel.requestLocationPermission()

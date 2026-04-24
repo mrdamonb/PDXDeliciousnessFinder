@@ -84,7 +84,26 @@ struct RestaurantDetailView: View {
                     LabeledContent("Cuisine", value: cuisine)
                 }
                 if let address = restaurant.address {
-                    LabeledContent("Address", value: address)
+                    if restaurant.coordinate != nil {
+                        Button {
+                            appState.mapFocusCoordinate = restaurant.coordinate
+                            appState.mapFocusTrigger += 1
+                            appState.selectedTab = 0
+                            dismiss()
+                        } label: {
+                            LabeledContent("Address") {
+                                HStack(spacing: 6) {
+                                    Text(address)
+                                    Image(systemName: "mappin.circle.fill")
+                                        .font(.footnote)
+                                        .foregroundStyle(Color.pdxAccent)
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    } else {
+                        LabeledContent("Address", value: address)
+                    }
                 }
                 if let neighborhood = restaurant.neighborhood {
                     LabeledContent("Neighborhood", value: neighborhood)

@@ -49,8 +49,9 @@ struct EditRestaurantView: View {
         viewModel.saveState = .loading
         do {
             let newAddress = viewModel.address.isEmpty ? nil : viewModel.address
+            let addressChanged = newAddress != restaurant.address
             // Re-geocode if the address changed or coordinates are missing.
-            if newAddress != restaurant.address || restaurant.latitude == nil {
+            if addressChanged || restaurant.latitude == nil {
                 let (lat, lon) = await viewModel.geocode(
                     address: viewModel.address,
                     city: viewModel.city.isEmpty ? "Portland" : viewModel.city
@@ -63,10 +64,9 @@ struct EditRestaurantView: View {
             restaurant.city = viewModel.city.isEmpty ? "Portland" : viewModel.city
             restaurant.website = viewModel.website.isEmpty ? nil : viewModel.website
             restaurant.cuisine = viewModel.cuisine.isEmpty ? nil : viewModel.cuisine
-            // If user left neighborhood blank, auto-detect from coordinates (existing or
-            // just geocoded). This covers: new restaurants, address edits, and existing
-            // restaurants that were saved before neighborhood detection existed.
-            if viewModel.neighborhood.isEmpty {
+            // Re-detect neighborhood when address changed or field is blank.
+            // If the user typed a custom neighborhood and the address didn't change, preserve it.
+            if addressChanged || viewModel.neighborhood.isEmpty {
                 if let lat = restaurant.latitude, let lon = restaurant.longitude {
                     let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
                     restaurant.neighborhood = NeighborhoodService.shared.neighborhood(for: coord)

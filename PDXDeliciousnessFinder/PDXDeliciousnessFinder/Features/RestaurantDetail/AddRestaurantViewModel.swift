@@ -101,7 +101,7 @@ final class AddRestaurantViewModel {
                 neighborhood: resolvedNeighborhood,
                 city: city.isEmpty ? "Portland" : city,
                 website: website.isEmpty ? nil : website,
-                cuisine: cuisine.isEmpty ? nil : cuisine,
+                cuisine: { let t = cuisine.trimmingCharacters(in: .whitespaces); return t.isEmpty ? nil : t }(),
                 venueType: venueType,
                 priceRange: priceRange,
                 status: status,

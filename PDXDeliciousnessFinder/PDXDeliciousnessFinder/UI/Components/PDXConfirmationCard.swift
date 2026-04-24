@@ -141,7 +141,7 @@ struct PDXConfirmationCard: View {
                         name: name,
                         address: address.isEmpty ? nil : address,
                         website: website.isEmpty ? nil : website,
-                        cuisine: cuisine.isEmpty ? nil : cuisine,
+                        cuisine: { let t = cuisine.trimmingCharacters(in: .whitespaces); return t.isEmpty ? nil : t }(),
                         venueType: venueType,
                         priceRange: priceRange,
                         status: status,
