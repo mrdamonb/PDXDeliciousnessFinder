@@ -1,0 +1,16 @@
+# Environment files — never commit real credentials
+.env.local
+.env*.local
+
+# Next.js
+web/.next/
+web/out/
+web/node_modules/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editor
+.vscode/
+*.swp
