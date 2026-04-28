@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDX Deliciousness Finder — Pin Comparison</title>
+<style>
+  :root {
+    --bg: #F7F3EE;
+    --surface: #FFFFFF;
+    --text-primary: #1C1917;
+    --text-secondary: #6B6560;
+    --border: #EDE8E3;
+    --accent: #C2410C;
+    --want: #F59E0B;
+    --been: #16A34A;
+    --fav: #DC2626;
+    --friend: #7C3AED;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    padding: 48px 24px 80px;
+  }
+
+  h1 { font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: var(--text-secondary); font-size: 15px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto; }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .section-heading {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-desc {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 32px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ─── Comparison Container ─── */
+  .compare-row {
+    display: flex;
+    gap: 48px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 64px;
+  }
+
+  .compare-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .compare-label {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .compare-sublabel {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  /* ─── Map Canvas ─── */
+  .map-canvas {
+    width: 380px;
+    height: 420px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(28,25,23,0.08), 0 0 0 1px rgba(28,25,23,0.04);
+    position: relative;
+    background: linear-gradient(135deg, #e8e0d6 0%, #d4ccc2 40%, #c8bfb3 70%, #ddd5cb 100%);
+  }
+  .map-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent 28%, rgba(255,255,255,0.35) 28%, rgba(255,255,255,0.35) 28.5%, transparent 28.5%),
+      linear-gradient(90deg, transparent 52%, rgba(255,255,255,0.3) 52%, rgba(255,255,255,0.3) 52.4%, transparent 52.4%),
+      linear-gradient(90deg, transparent 75%, rgba(255,255,255,0.25) 75%, rgba(255,255,255,0.25) 75.3%, transparent 75.3%),
+      linear-gradient(0deg, transparent 22%, rgba(255,255,255,0.35) 22%, rgba(255,255,255,0.35) 22.5%, transparent 22.5%),
+      linear-gradient(0deg, transparent 48%, rgba(255,255,255,0.3) 48%, rgba(255,255,255,0.3) 48.4%, transparent 48.4%),
+      linear-gradient(0deg, transparent 70%, rgba(255,255,255,0.25) 70%, rgba(255,255,255,0.25) 70.3%, transparent 70.3%);
+    z-index: 0;
+  }
+  .map-canvas::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 25% 55%, rgba(162,193,162,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 68% 28%, rgba(180,200,180,0.08) 0%, transparent 40%);
+    z-index: 0;
+  }
+
+  /* Neighborhood labels */
+  .hood-label {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--text-secondary);
+    opacity: 0.4;
+    z-index: 1;
+  }
+
+  /* ─── SVG Icon definitions ─── */
+  /* Using inline SVGs that mimic Lucide/SF Symbols style */
+
+  /* ─── ROUND PINS ─── */
+  .pin-round {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pin-round .fav-star {
+    margin-bottom: -3px;
+  }
+  .pin-round .circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .pin-round .circle svg {
+    width: 15px;
+    height: 15px;
+  }
+  .pin-round .circle.large {
+    width: 36px;
+    height: 36px;
+  }
+  .pin-round .circle.large svg {
+    width: 17px;
+    height: 17px;
+  }
+  .pin-round .friend-dot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--friend);
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+
+  /* ─── TEARDROP PINS ─── */
+  .pin-tear {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pin-tear .fav-star {
+    margin-bottom: -3px;
+  }
+  .pin-tear .drop {
+    width: 34px;
+    height: 42px;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+  .pin-tear .drop.large {
+    width: 38px;
+    height: 46px;
+  }
+  .pin-tear .drop svg.shape {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .pin-tear .drop .icon-wrap {
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pin-tear .drop.large .icon-wrap {
+    margin-top: 9px;
+  }
+  .pin-tear .drop .icon-wrap svg {
+    width: 15px;
+    height: 15px;
+  }
+  .pin-tear .drop.large .icon-wrap svg {
+    width: 17px;
+    height: 17px;
+  }
+  .pin-tear .friend-dot {
+    position: absolute;
+    bottom: 8px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--friend);
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    z-index: 3;
+  }
+
+  /* ─── Legend ─── */
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* ─── Food Cart Icon Options ─── */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    max-width: 700px;
+    margin: 0 auto 64px;
+  }
+  .icon-option {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .icon-option:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(194,65,12,0.1);
+  }
+  .icon-option .preview-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--want);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .icon-option .preview-circle svg {
+    width: 20px;
+    height: 20px;
+  }
+  .icon-option .icon-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .icon-option .icon-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  /* Divider */
+  .divider {
+    width: 80px;
+    height: 2px;
+    background: var(--border);
+    margin: 0 auto 48px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Pin Shape Comparison</h1>
+<p class="subtitle">Same icons, same colors, same layout — just the shape changes. Which feels more "Portland Journal"?</p>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- ROUND vs TEARDROP side by side            -->
+<!-- ══════════════════════════════════════════ -->
+<div class="compare-row">
+
+  <!-- ROUND -->
+  <div class="compare-col">
+    <div class="compare-label">Round</div>
+    <div class="compare-sublabel">Your current prototype style.<br>Clean, minimal, modern.</div>
+    <div class="map-canvas">
+      <div class="hood-label" style="top:90px;left:30px;">Pearl District</div>
+      <div class="hood-label" style="top:130px;left:230px;">Buckman</div>
+      <div class="hood-label" style="top:60px;left:240px;">Alberta Arts</div>
+      <div class="hood-label" style="top:250px;left:30px;">NW 23rd</div>
+
+      <!-- Want to Go: Restaurant -->
+      <div class="pin-round" style="top:100px;left:250px;">
+        <div class="circle" style="background:var(--want);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        </div>
+      </div>
+
+      <!-- Want to Go: Restaurant 2 -->
+      <div class="pin-round" style="top:140px;left:80px;">
+        <div class="circle" style="background:var(--want);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        </div>
+      </div>
+
+      <!-- Been There: Restaurant (checkmark) -->
+      <div class="pin-round" style="top:200px;left:180px;">
+        <div class="circle" style="background:var(--been);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+
+      <!-- Been There: Restaurant 2 -->
+      <div class="pin-round" style="top:260px;left:300px;">
+        <div class="circle" style="background:var(--been);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+
+      <!-- Favorite: Restaurant (large + star) -->
+      <div class="pin-round" style="top:150px;left:200px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--fav)" stroke="var(--fav)" stroke-width="2" class="fav-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="circle large" style="background:var(--fav);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        </div>
+      </div>
+
+      <!-- Favorite: Bar (large + star) -->
+      <div class="pin-round" style="top:70px;left:310px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--fav)" stroke="var(--fav)" stroke-width="2" class="fav-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="circle large" style="background:var(--fav);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 22V2"/><path d="m19 2-7 6-7-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Want to Go: Food Cart (truck icon) + friend badge -->
+      <div class="pin-round" style="top:300px;left:120px;">
+        <div class="circle" style="background:var(--want);position:relative;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><path d="M15 18H9"/><circle cx="17" cy="18" r="2"/></svg>
+          <div class="friend-dot"></div>
+        </div>
+      </div>
+
+      <!-- Want to Go: Restaurant 3 -->
+      <div class="pin-round" style="top:330px;left:250px;">
+        <div class="circle" style="background:var(--want);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        </div>
+      </div>
+
+      <!-- Been There: Bar -->
+      <div class="pin-round" style="top:230px;left:60px;">
+        <div class="circle" style="background:var(--been);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--want)"></div>Want to Go</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--been)"></div>Been There</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--fav)"></div>Favorite</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--friend)"></div>Friend</div>
+    </div>
+  </div>
+
+  <!-- TEARDROP -->
+  <div class="compare-col">
+    <div class="compare-label">Upright Teardrop</div>
+    <div class="compare-sublabel">Classic map pin silhouette, point-down.<br>Stronger location semantic.</div>
+    <div class="map-canvas">
+      <div class="hood-label" style="top:90px;left:30px;">Pearl District</div>
+      <div class="hood-label" style="top:130px;left:230px;">Buckman</div>
+      <div class="hood-label" style="top:60px;left:240px;">Alberta Arts</div>
+      <div class="hood-label" style="top:250px;left:30px;">NW 23rd</div>
+
+      <!-- Want to Go: Restaurant -->
+      <div class="pin-tear" style="top:90px;left:245px;">
+        <div class="drop">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--want)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Want to Go: Restaurant 2 -->
+      <div class="pin-tear" style="top:130px;left:75px;">
+        <div class="drop">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--want)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Been There: Restaurant (checkmark) -->
+      <div class="pin-tear" style="top:188px;left:175px;">
+        <div class="drop">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--been)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Been There: Restaurant 2 -->
+      <div class="pin-tear" style="top:248px;left:295px;">
+        <div class="drop">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--been)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Favorite: Restaurant (large + star) -->
+      <div class="pin-tear" style="top:134px;left:195px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--fav)" stroke="var(--fav)" stroke-width="2" class="fav-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="drop large">
+          <svg class="shape" viewBox="0 0 38 46"><path d="M19 46C19 46 0 27 0 16.5C0 7.39 8.51 0 19 0C29.49 0 38 7.39 38 16.5C38 27 19 46 19 46Z" fill="var(--fav)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Favorite: Bar (large + star) -->
+      <div class="pin-tear" style="top:54px;left:305px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--fav)" stroke="var(--fav)" stroke-width="2" class="fav-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="drop large">
+          <svg class="shape" viewBox="0 0 38 46"><path d="M19 46C19 46 0 27 0 16.5C0 7.39 8.51 0 19 0C29.49 0 38 7.39 38 16.5C38 27 19 46 19 46Z" fill="var(--fav)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 22V2"/><path d="m19 2-7 6-7-6"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Want to Go: Food Cart (truck) + friend badge -->
+      <div class="pin-tear" style="top:290px;left:115px;">
+        <div class="drop" style="position:relative;">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--want)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><path d="M15 18H9"/><circle cx="17" cy="18" r="2"/></svg></div>
+          <div class="friend-dot"></div>
+        </div>
+      </div>
+
+      <!-- Want to Go: Restaurant 3 -->
+      <div class="pin-tear" style="top:318px;left:245px;">
+        <div class="drop">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--want)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Been There: Bar -->
+      <div class="pin-tear" style="top:218px;left:55px;">
+        <div class="drop">
+          <svg class="shape" viewBox="0 0 34 42"><path d="M17 42C17 42 0 24.5 0 15C0 6.72 7.61 0 17 0C26.39 0 34 6.72 34 15C34 24.5 17 42 17 42Z" fill="var(--been)"/></svg>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--want)"></div>Want to Go</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--been)"></div>Been There</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--fav)"></div>Favorite</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--friend)"></div>Friend</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- FOOD CART ICON OPTIONS                     -->
+<!-- ══════════════════════════════════════════ -->
+<div class="divider"></div>
+
+<div class="section-title">Food Cart Icon</div>
+<div class="section-heading">Shopping Cart Replacement</div>
+<p class="section-desc">The shopping cart doesn't say "food cart." Here are 5 alternatives — all clean vector style, all readable at pin size.</p>
+
+<div class="icon-grid">
+  <!-- Option A: Truck -->
+  <div class="icon-option">
+    <div class="preview-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><path d="M15 18H9"/><circle cx="17" cy="18" r="2"/></svg>
+    </div>
+    <div class="icon-name">A. Truck</div>
+    <div class="icon-desc">Food truck / delivery truck. Immediately reads as mobile food.</div>
+  </div>
+
+  <!-- Option B: Store / Storefront -->
+  <div class="icon-option">
+    <div class="preview-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l1.5-3A1 1 0 0 1 4.4 3h15.2a1 1 0 0 1 .9.6L22 7"/><path d="M2 7h20v2a3 3 0 0 1-3 3h0a3 3 0 0 1-3-3 3 3 0 0 1-3 3h0a3 3 0 0 1-3-3 3 3 0 0 1-3 3h0a3 3 0 0 1-3-3V7Z"/><path d="M4 12v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8"/></svg>
+    </div>
+    <div class="icon-name">B. Storefront</div>
+    <div class="icon-desc">Small shop awning. Works for carts & food stalls. Cozy.</div>
+  </div>
+
+  <!-- Option C: Flame / cooking -->
+  <div class="icon-option">
+    <div class="preview-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14 0-5.5 3.5-7.5 .67 2.5 1.33 4 2.5 5.5 1.17 1.5 2 3.5 2 5.5a7 7 0 1 1-14 0c0-1.15.5-2.85 1.5-4 .78.97 1.21 1.97 1 3Z"/></svg>
+    </div>
+    <div class="icon-name">C. Flame</div>
+    <div class="icon-desc">Cooking fire. Universal "street food" energy. Bold and warm.</div>
+  </div>
+
+  <!-- Option D: Tent/awning -->
+  <div class="icon-option">
+    <div class="preview-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 20V8l8-5 8 5v12"/><path d="M9 20v-6h6v6"/></svg>
+    </div>
+    <div class="icon-name">D. Cart Pod</div>
+    <div class="icon-desc">Simple structure. Evokes Portland's cart pod culture.</div>
+  </div>
+
+  <!-- Option E: Wheel / cart wheel -->
+  <div class="icon-option">
+    <div class="preview-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="15" height="10" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="13" cy="18" r="2"/><path d="M17 10h2l3 4v2h-5"/></svg>
+    </div>
+    <div class="icon-name">E. Food Cart</div>
+    <div class="icon-desc">Cart with wheels and serving window. Most literal reading.</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,247 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Pearl District" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.700, 45.521], [-122.675, 45.521],
+          [-122.675, 45.533], [-122.700, 45.533], [-122.700, 45.521]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Downtown" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.680, 45.510], [-122.665, 45.510],
+          [-122.665, 45.523], [-122.680, 45.523], [-122.680, 45.510]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "NW District" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.720, 45.525], [-122.688, 45.525],
+          [-122.688, 45.552], [-122.720, 45.552], [-122.720, 45.525]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Hawthorne" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.660, 45.505], [-122.618, 45.505],
+          [-122.618, 45.520], [-122.660, 45.520], [-122.660, 45.505]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Division" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.650, 45.493], [-122.588, 45.493],
+          [-122.588, 45.507], [-122.650, 45.507], [-122.650, 45.493]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Alberta Arts District" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.662, 45.551], [-122.618, 45.551],
+          [-122.618, 45.566], [-122.662, 45.566], [-122.662, 45.551]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Mississippi" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.693, 45.539], [-122.670, 45.539],
+          [-122.670, 45.556], [-122.693, 45.556], [-122.693, 45.539]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sellwood" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.666, 45.462], [-122.636, 45.462],
+          [-122.636, 45.481], [-122.666, 45.481], [-122.666, 45.462]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "St. Johns" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.762, 45.584], [-122.736, 45.584],
+          [-122.736, 45.607], [-122.762, 45.607], [-122.762, 45.584]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Woodstock" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.642, 45.478], [-122.617, 45.478],
+          [-122.617, 45.493], [-122.642, 45.493], [-122.642, 45.478]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Foster-Powell" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.622, 45.483], [-122.593, 45.483],
+          [-122.593, 45.501], [-122.622, 45.501], [-122.622, 45.483]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Irvington" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.653, 45.532], [-122.623, 45.532],
+          [-122.623, 45.551], [-122.653, 45.551], [-122.653, 45.532]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Laurelhurst" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.636, 45.514], [-122.610, 45.514],
+          [-122.610, 45.534], [-122.636, 45.534], [-122.636, 45.514]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Lloyd District" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.676, 45.526], [-122.654, 45.526],
+          [-122.654, 45.540], [-122.676, 45.540], [-122.676, 45.526]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Kerns" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.661, 45.519], [-122.635, 45.519],
+          [-122.635, 45.532], [-122.661, 45.532], [-122.661, 45.519]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Richmond" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.660, 45.495], [-122.628, 45.495],
+          [-122.628, 45.507], [-122.660, 45.507], [-122.660, 45.495]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Mt. Tabor" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.616, 45.509], [-122.594, 45.509],
+          [-122.594, 45.528], [-122.616, 45.528], [-122.616, 45.509]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Eliot" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.678, 45.537], [-122.655, 45.537],
+          [-122.655, 45.556], [-122.678, 45.556], [-122.678, 45.537]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Alameda" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.630, 45.540], [-122.606, 45.540],
+          [-122.606, 45.557], [-122.630, 45.557], [-122.630, 45.540]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Hollywood" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.622, 45.526], [-122.596, 45.526],
+          [-122.596, 45.543], [-122.622, 45.543], [-122.622, 45.526]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Concordia" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.634, 45.553], [-122.606, 45.553],
+          [-122.606, 45.570], [-122.634, 45.570], [-122.634, 45.553]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Eastmoreland" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.644, 45.462], [-122.619, 45.462],
+          [-122.619, 45.481], [-122.644, 45.481], [-122.644, 45.462]
+        ]]
+      }
+    }
+  ]
+}

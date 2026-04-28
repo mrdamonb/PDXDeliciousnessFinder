@@ -36,7 +36,7 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 | Status & Visit Tracking | 6 | Low-Medium — state machine + append-only visit log |
 | Map & List Discovery | 8 | Medium — MapKit rendering, custom pins, filter stack, neighborhood detection |
 | Social & Friends | 13 | High — connection/sync state machine, non-destructive merge, duplicate detection, push notifications |
-| User Account & Settings | 5 | Medium — Apple Sign In, multi-device sync via cloud database |
+| User Account & Settings | 5 | Medium — Supabase Auth (email/password v1), multi-device sync via cloud database |
 
 **Non-Functional Requirements driving architecture:**
 - Map renders in <2s → local data, not API-on-demand
@@ -56,7 +56,7 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 ### Technical Constraints & Dependencies
 
 - **SwiftUI + MapKit** — decided; no Google Maps SDK
-- **Apple Sign In** — sole auth method; backend must validate Apple ID tokens
+- **Supabase Auth (email/password for v1)** — primary auth path; backend validates sessions via Supabase. Sign in with Apple may be added before App Store if required.
 - **iOS 16+ minimum** — modern SwiftUI, share extensions, Swift Data available
 - **App Groups entitlement** — share extension and main app must share a data container; hard architectural constraint
 - **BGAppRefreshTask** — background sync mechanism; Apple limits frequency (~15 min minimum)
@@ -167,9 +167,9 @@ ShareExtension/
 
 ### Authentication & Security
 
-**Decision: Apple Sign In + Supabase Auth**
-- **Choice:** Apple Sign In as the sole authentication method. Supabase Auth handles token validation via its built-in Apple provider. The Supabase `anon` key is embedded in the app (standard practice); Row-Level Security policies enforce all data access boundaries at the database level.
-- **Rationale:** Matches PRD requirement; single sign-in path simplifies onboarding. RLS ensures users can only read/write their own data and their synced friends' public additions — no bespoke authorization middleware needed.
+**Decision: Supabase Auth (email/password v1; Apple optional later)**
+- **Choice:** For v1 (TestFlight), email + password via Supabase Auth (`signUp` / `signIn`). Supabase validates credentials and issues sessions; the `anon` key is embedded in the app (standard practice); Row-Level Security policies enforce all data access boundaries at the database level. Sign in with Apple can be added later via Supabase’s Apple provider before App Store if guideline 4.8 or product goals require it.
+- **Rationale:** Matches PRD for v1; avoids paid Apple Developer entitlement for early TestFlight. RLS ensures users can only read/write their own data and their synced friends' public additions — no bespoke authorization middleware needed.
 - **Affects:** `Features/Onboarding`, `Core/Network`, all Supabase table policies
 
 **Decision: API Key Management**
@@ -237,7 +237,7 @@ ShareExtension/
 
 **Implementation Sequence (order matters):**
 1. Supabase project setup + schema migrations (blocks all data operations)
-2. Apple Sign In + Supabase Auth integration (blocks any user-scoped data)
+2. Email/password + Supabase Auth integration (blocks any user-scoped data)
 3. `Core/Storage` — SwiftData models + offline write queue (blocks all feature development)
 4. `Core/Sync` — Supabase sync + NWPathMonitor (depends on storage + auth)
 5. Restaurant CRUD + status/visit log (first usable feature)
@@ -518,7 +518,7 @@ Xcode Cloud configuration lives in App Store Connect / Xcode; no extra repositor
 
 **Share extension → main app:** Shared App Group container; same SwiftData store path; `NotificationCenter` for local change signals; Supabase for remote sync.
 
-**External integrations:** Sign in with Apple; Supabase; APNs (post-MVP for digest); enrichment providers invoked only from Edge Functions.
+**External integrations:** Supabase Auth (email/password v1; Sign in with Apple optional pre–App Store); Supabase; APNs (post-MVP for digest); enrichment providers invoked only from Edge Functions.
 
 ### Data Flow (high level)
 
@@ -632,7 +632,7 @@ No blocking contradictions were found. The repository location clarifies the onl
 **First implementation priority (order):**
 
 1. Create Supabase `pdx-dev` project; add baseline SQL migrations under `supabase/migrations/`.
-2. Wire Apple Sign In → Supabase Auth in the app.
+2. Wire email/password auth → Supabase Auth in the app.
 3. Implement `Core/Storage` (SwiftData models, `PersistenceController`, `Core/Storage/Repositories/`).
 4. Implement `Core/Sync` (`SyncQueue`, path monitor, first successful round-trip sync).
 

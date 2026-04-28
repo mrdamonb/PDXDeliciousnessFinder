@@ -15,3 +15,6 @@ web/tsconfig.tsbuildinfo
 # Editor
 .vscode/
 *.swp
+
+# Claude Code
+.claude/
