@@ -6,6 +6,7 @@
 web/.next/
 web/out/
 web/node_modules/
+web/tsconfig.tsbuildinfo
 
 # macOS
 .DS_Store
