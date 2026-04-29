@@ -1,5 +1,9 @@
 import { redirect } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
+import { getRestaurants } from '@/lib/supabase/restaurants'
+
+const MapView = dynamic(() => import('@/components/MapView'), { ssr: false })
 
 export default async function HomePage() {
   const supabase = createClient()
@@ -7,9 +11,9 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
+
+  const restaurants = await getRestaurants(supabase)
 
   async function signOut() {
     'use server'
@@ -19,23 +23,36 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <span className="font-semibold text-orange-500">PDX Deliciousness Finder</span>
+    <div className="h-screen relative overflow-hidden" style={{ backgroundColor: '#F7F3EE' }}>
+      {/* Frosted glass header — floats over the full-bleed map */}
+      <header
+        className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 backdrop-blur-md"
+        style={{
+          height: 52,
+          backgroundColor: 'rgba(247, 243, 238, 0.88)',
+          borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
+        }}
+      >
+        <span className="font-semibold text-base" style={{ color: '#C2410C' }}>
+          PDX Deliciousness Finder
+        </span>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">{user.email}</span>
+          <span className="text-sm" style={{ color: '#6B6560' }}>{user.email}</span>
           <form action={signOut}>
             <button
               type="submit"
-              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              className="text-sm transition-colors hover:opacity-70"
+              style={{ color: '#6B6560' }}
             >
               Sign Out
             </button>
           </form>
         </div>
       </header>
-      <main className="flex items-center justify-center h-[calc(100vh-57px)] text-gray-400 text-sm">
-        Map and list coming in S2
+
+      {/* Map fills the full viewport — renders behind the header */}
+      <main className="absolute inset-0">
+        <MapView restaurants={restaurants} />
       </main>
     </div>
   )
