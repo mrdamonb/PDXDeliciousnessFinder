@@ -65,7 +65,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
 
   return (
     <div
-      className="h-screen relative overflow-hidden"
+      className="h-dvh relative overflow-hidden"
       style={{ backgroundColor: '#F7F3EE' }}
     >
       {/* Frosted glass header — floats over the full-bleed content */}

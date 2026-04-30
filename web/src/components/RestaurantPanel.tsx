@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, X, ChevronDown, Clock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -41,6 +41,7 @@ type Props = {
 export default function RestaurantPanel({ restaurant, onClose }: Props) {
   const router = useRouter()
   const [expanded, setExpanded] = useState(false)
+  const dragStartY = useRef<number | null>(null)
   const statusColor = STATUS_COLORS[restaurant.status]
   const VenueIcon = restaurant.venue_type ? (VENUE_ICONS[restaurant.venue_type] ?? UtensilsCrossed) : null
 
@@ -118,6 +119,16 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
       <div
         className="flex justify-center pt-3 pb-1 shrink-0 cursor-pointer"
         onClick={() => setExpanded((e) => !e)}
+        onTouchStart={(e) => { dragStartY.current = e.touches[0].clientY }}
+        onTouchEnd={(e) => {
+          if (dragStartY.current === null) return
+          const dy = e.changedTouches[0].clientY - dragStartY.current
+          dragStartY.current = null
+          if (Math.abs(dy) < 10) return
+          if (dy < 0) setExpanded(true)
+          else if (expanded) setExpanded(false)
+          else onClose()
+        }}
         aria-hidden="true"
       >
         <div

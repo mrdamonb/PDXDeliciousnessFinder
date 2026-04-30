@@ -36,13 +36,17 @@ export default function FilterPopover({ filterState, onFilterChange, filterOptio
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function onMouseDown(e: MouseEvent) {
+    function onOutside(e: MouseEvent | TouchEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         onClose()
       }
     }
-    document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
+    document.addEventListener('mousedown', onOutside)
+    document.addEventListener('touchstart', onOutside as EventListener)
+    return () => {
+      document.removeEventListener('mousedown', onOutside)
+      document.removeEventListener('touchstart', onOutside as EventListener)
+    }
   }, [onClose])
 
   function toggle(dimension: keyof FilterState, value: string) {
@@ -67,84 +71,88 @@ export default function FilterPopover({ filterState, onFilterChange, filterOptio
         backgroundColor: 'white',
         borderRadius: 16,
         boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
-        padding: '16px 16px 12px',
-        maxHeight: 'calc(100vh - 120px)',
-        overflowY: 'auto',
+        maxHeight: 'calc(100dvh - 120px)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      <Section label="Status">
-        {STATUS_OPTIONS.map(({ value, label, activeColor }) => (
-          <Pill
-            key={value}
-            label={label}
-            active={filterState.status.includes(value)}
-            activeColor={activeColor}
-            onClick={() => toggle('status', value)}
-          />
-        ))}
-      </Section>
-
-      <Section label="Venue Type">
-        {VENUE_OPTIONS.map(({ value, label }) => (
-          <Pill
-            key={value}
-            label={label}
-            active={filterState.venueType.includes(value)}
-            activeColor={ACCENT}
-            onClick={() => toggle('venueType', value)}
-          />
-        ))}
-      </Section>
-
-      {filterOptions.neighborhoods.length > 0 && (
-        <Section label="Neighborhood">
-          {filterOptions.neighborhoods.map((n) => (
+      {/* Scrollable filter sections */}
+      <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 0' }}>
+        <Section label="Status">
+          {STATUS_OPTIONS.map(({ value, label, activeColor }) => (
             <Pill
-              key={n}
-              label={n}
-              active={filterState.neighborhood.includes(n)}
-              activeColor={ACCENT}
-              onClick={() => toggle('neighborhood', n)}
+              key={value}
+              label={label}
+              active={filterState.status.includes(value)}
+              activeColor={activeColor}
+              onClick={() => toggle('status', value)}
             />
           ))}
         </Section>
-      )}
 
-      {filterOptions.cuisines.length > 0 && (
-        <Section label="Cuisine">
-          {filterOptions.cuisines.map((c) => (
+        <Section label="Venue Type">
+          {VENUE_OPTIONS.map(({ value, label }) => (
             <Pill
-              key={c}
-              label={c}
-              active={filterState.cuisine.includes(c)}
+              key={value}
+              label={label}
+              active={filterState.venueType.includes(value)}
               activeColor={ACCENT}
-              onClick={() => toggle('cuisine', c)}
+              onClick={() => toggle('venueType', value)}
             />
           ))}
         </Section>
-      )}
 
-      <Section label="Price">
-        {PRICE_OPTIONS.map(({ value, label }) => (
-          <Pill
-            key={value}
-            label={label}
-            active={filterState.price.includes(value)}
-            activeColor={ACCENT}
-            onClick={() => toggle('price', value)}
-          />
-        ))}
-      </Section>
+        {filterOptions.neighborhoods.length > 0 && (
+          <Section label="Neighborhood">
+            {filterOptions.neighborhoods.map((n) => (
+              <Pill
+                key={n}
+                label={n}
+                active={filterState.neighborhood.includes(n)}
+                activeColor={ACCENT}
+                onClick={() => toggle('neighborhood', n)}
+              />
+            ))}
+          </Section>
+        )}
 
-      {/* Footer */}
+        {filterOptions.cuisines.length > 0 && (
+          <Section label="Cuisine">
+            {filterOptions.cuisines.map((c) => (
+              <Pill
+                key={c}
+                label={c}
+                active={filterState.cuisine.includes(c)}
+                activeColor={ACCENT}
+                onClick={() => toggle('cuisine', c)}
+              />
+            ))}
+          </Section>
+        )}
+
+        <Section label="Price">
+          {PRICE_OPTIONS.map(({ value, label }) => (
+            <Pill
+              key={value}
+              label={label}
+              active={filterState.price.includes(value)}
+              activeColor={ACCENT}
+              onClick={() => toggle('price', value)}
+            />
+          ))}
+        </Section>
+      </div>
+
+      {/* Sticky footer — always visible, never scrolls away */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginTop: 12,
-          paddingTop: 12,
+          padding: '12px 16px',
           borderTop: '1px solid #F0EBE5',
+          flexShrink: 0,
         }}
       >
         <button
