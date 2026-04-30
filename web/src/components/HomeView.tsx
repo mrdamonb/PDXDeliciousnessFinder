@@ -75,7 +75,8 @@ export default function HomeView({ restaurants, userEmail }: Props) {
           backgroundColor: 'rgba(247, 243, 238, 0.88)',
           borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
           paddingTop: 'env(safe-area-inset-top)',
-          zIndex: 10,
+          position: 'relative',
+          zIndex: 100,
         }}
       >
         <div
@@ -176,7 +177,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
 
       {/* Content area — flex-1 fills remaining height below the header */}
       <main className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <div style={{ position: 'absolute', inset: 0 }}>
 
           {view === 'map' && (
             <MapView
