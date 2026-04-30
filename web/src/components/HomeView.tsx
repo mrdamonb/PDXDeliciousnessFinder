@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Restaurant } from '@/lib/supabase/restaurants'
+import AddRestaurantModal from './AddRestaurantModal'
 import {
   type FilterState,
   EMPTY_FILTER,
@@ -46,10 +48,12 @@ type Props = {
 }
 
 export default function HomeView({ restaurants, userEmail }: Props) {
+  const router = useRouter()
   const [view, setView] = useState<'map' | 'list'>('map')
   const [filterState, setFilterState] = useState<FilterState>(EMPTY_FILTER)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const filterOptions = getFilterOptions(restaurants)
   const filteredRestaurants = filterRestaurants(restaurants, filterState)
@@ -125,9 +129,42 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             </button>
           </div>
 
-          <UserMenu email={userEmail} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <UserMenu email={userEmail} />
+            <button
+              onClick={() => setModalOpen(true)}
+              aria-label="Add restaurant"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 999,
+                border: 'none',
+                backgroundColor: '#C2410C',
+                color: '#fff',
+                fontSize: 20,
+                lineHeight: 1,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              +
+            </button>
+          </div>
         </div>
       </header>
+
+      {modalOpen && (
+        <AddRestaurantModal
+          onClose={() => setModalOpen(false)}
+          onSaveSuccess={() => {
+            setModalOpen(false)
+            router.refresh()
+          }}
+        />
+      )}
 
       {/* Full-bleed content area — starts at top:0, header overlays it */}
       <main className="absolute inset-0">

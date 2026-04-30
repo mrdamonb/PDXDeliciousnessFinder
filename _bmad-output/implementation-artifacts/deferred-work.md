@@ -20,6 +20,11 @@ Mark a restaurant as visited. Add notes. View visit history with timestamps. Wri
 
 ---
 
+## Deferred from S4 — Add Restaurant (2026-04-29)
+
+- **Server-side enum validation in `saveRestaurant`** — `venue_type` and `status` fields are passed from the client with no server-side allowlist check. Postgres constraints are the current backstop. Add explicit validation before the insert if DB-level errors need cleaner user messages.
+- **`supabase.auth.getUser()` error field ignored** — `saveRestaurant` checks `!user` but discards the `error` return from `getUser()`. Add logging of the auth error for diagnostics when session is stale.
+
 ## Future / Separate Initiatives
 
 - **Social layer** (friends, shared lists) — add to both iOS and web after web V1 is in testers' hands

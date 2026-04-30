@@ -2,8 +2,9 @@
 title: 'PDX Deliciousness Finder — Web App S4: Add Restaurant'
 type: 'feature'
 created: '2026-04-29'
-status: 'ready-for-dev'
+status: 'done'
 branch: 'web/s4-add-restaurant'
+baseline_commit: '92b8f9a3336efdc62a23438fd65a118ece62ae25'
 context:
   - '_bmad-output/planning-artifacts/architecture.md'
   - '_bmad-output/planning-artifacts/epics.md'
@@ -69,15 +70,15 @@ context:
 
 **Execution order matters — each task builds on the previous.**
 
-- [ ] `web/src/app/actions.ts` — add `SaveRestaurantData` type and `saveRestaurant(data: SaveRestaurantData)` server action. Type: `{ name: string; address: string | null; latitude: number; longitude: number; venue_type: string | null; cuisine: string | null; price_range: string | null; status: 'want_to_go' | 'been_there' | 'favorite'; city: string }`. Get session user via `createClient().auth.getUser()`; throw if no session. Insert into `restaurants` with `user_id = user.id`; throw on Supabase error.
+- [x] `web/src/app/actions.ts` — add `SaveRestaurantData` type and `saveRestaurant(data: SaveRestaurantData)` server action. Type: `{ name: string; address: string | null; latitude: number; longitude: number; venue_type: string | null; cuisine: string | null; price_range: string | null; status: 'want_to_go' | 'been_there' | 'favorite'; city: string }`. Get session user via `createClient().auth.getUser()`; throw if no session. Insert into `restaurants` with `user_id = user.id`; throw on Supabase error.
 
-- [ ] `web/src/components/AddRestaurantModal.tsx` — `'use client'`; two-panel state machine (`'search' | 'confirm'`):
+- [x] `web/src/components/AddRestaurantModal.tsx` — `'use client'`; two-panel state machine (`'search' | 'confirm'`):
   - **Wrapper**: fixed overlay (`rgba(0,0,0,0.4)`, z-index 60); centered white card (max-width 480px, full-height on mobile, `rounded-2xl`, warm shadow `0 8px 32px rgba(0,0,0,0.18)`); × close button top-right (calls `onClose`); `Escape` key closes.
   - **Search panel**: text input autofocused on mount; debounce 400ms; fires only when `query.trim().length >= 3`; calls `createClient().functions.invoke('search-places', { body: { query, limit: 5 } })`; renders: loading spinner, up to 5 result rows (name + address primary, venue type label + price secondary), "No places found." empty state, error message on failure; clicking a row sets `selected` and switches panel to `'confirm'`.
   - **Confirm panel**: header row with "← Back" button (returns to `'search'`) and "Add Restaurant" title; form fields: name text input (required, pre-filled), address text (read-only, shown as muted text), venue type pill selector (restaurant / bar / brewery / food cart), cuisine text input (optional, pre-filled), price range pill selector ($, $$, $$$, $$$$), status pill selector (Want to Go / Been There / Favorite, default want_to_go); Save button (disabled when name empty); on Save: calls `saveRestaurant(...)` with `venueType` mapped (`foodCart` → `food_cart`), then calls `onSaveSuccess()`; shows inline error on throw.
   - Props: `onClose: () => void`, `onSaveSuccess: () => void`.
 
-- [ ] `web/src/components/HomeView.tsx` — import `useRouter` from `next/navigation`; add `modalOpen: boolean` state; add "+" button at far right of header (after `UserMenu`, 8px gap): 32×32px circle, `backgroundColor: '#C2410C'`, white `+` glyph, border-radius 999; clicking sets `modalOpen(true)`; render `<AddRestaurantModal onClose={() => setModalOpen(false)} onSaveSuccess={() => { router.refresh(); setModalOpen(false) }} />` when `modalOpen`.
+- [x] `web/src/components/HomeView.tsx` — import `useRouter` from `next/navigation`; add `modalOpen: boolean` state; add "+" button at far right of header (after `UserMenu`, 8px gap): 32×32px circle, `backgroundColor: '#C2410C'`, white `+` glyph, border-radius 999; clicking sets `modalOpen(true)`; render `<AddRestaurantModal onClose={() => setModalOpen(false)} onSaveSuccess={() => { router.refresh(); setModalOpen(false) }} />` when `modalOpen`.
 
 **Acceptance Criteria:**
 - Given an authenticated user, when they click "+", the Add Restaurant modal opens with a focused, empty search input.
@@ -116,3 +117,50 @@ context:
 - Select a result: confirmation card pre-filled; venue type, price match Yelp data
 - Edit status to "Been There", click Save: row appears on map with green pin
 - Click overlay backdrop: modal closes, no restaurant added
+
+## Suggested Review Order
+
+**Entry point — save action (server boundary)**
+
+- Server Action: auth guard + DB insert; the trust boundary for all saves
+  [`actions.ts:21`](../../web/src/app/actions.ts#L21)
+
+**Modal state machine**
+
+- Top-level modal: panel state machine, overlay, Escape handler, sequence-guarded search
+  [`AddRestaurantModal.tsx:62`](../../web/src/components/AddRestaurantModal.tsx#L62)
+
+- `runSearch`: debounce, sequence guard against stale responses, error logging
+  [`AddRestaurantModal.tsx:90`](../../web/src/components/AddRestaurantModal.tsx#L90)
+
+- `selectResult`: lat/lng guard, venueType camelCase→snake_case mapping, state init
+  [`AddRestaurantModal.tsx:120`](../../web/src/components/AddRestaurantModal.tsx#L120)
+
+- `handleSave`: calls Server Action, error logging, save error state
+  [`AddRestaurantModal.tsx:133`](../../web/src/components/AddRestaurantModal.tsx#L133)
+
+**Search panel UI**
+
+- `SearchPanel`: spinner (Tailwind animate-spin), empty state, result rows
+  [`AddRestaurantModal.tsx:170`](../../web/src/components/AddRestaurantModal.tsx#L170)
+
+- `SearchResultRow`: disabled + greyed when no coordinates, composite key
+  [`AddRestaurantModal.tsx:224`](../../web/src/components/AddRestaurantModal.tsx#L224)
+
+**Confirm panel UI**
+
+- `ConfirmPanel`: Back button with text, "Add Restaurant" title, pill selectors
+  [`AddRestaurantModal.tsx:259`](../../web/src/components/AddRestaurantModal.tsx#L259)
+
+**HomeView wiring**
+
+- "+" button and modal mount; close-first then refresh ordering
+  [`HomeView.tsx:155`](../../web/src/components/HomeView.tsx#L155)
+
+**Types**
+
+- `venueTypeToDB`: exhaustive mapping with safe fallback to null
+  [`AddRestaurantModal.tsx:34`](../../web/src/components/AddRestaurantModal.tsx#L34)
+
+- `SaveRestaurantData` type — shape contract between modal and Server Action
+  [`actions.ts:10`](../../web/src/app/actions.ts#L10)
