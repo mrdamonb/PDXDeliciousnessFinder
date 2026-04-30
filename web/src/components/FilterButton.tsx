@@ -11,7 +11,7 @@ export default function FilterButton({ activeCount, onClick }: Props) {
       onClick={onClick}
       style={{
         position: 'absolute',
-        top: 8,
+        top: 'calc(60px + env(safe-area-inset-top))',
         right: 16,
         zIndex: 20,
         display: 'flex',

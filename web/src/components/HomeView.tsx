@@ -65,32 +65,33 @@ export default function HomeView({ restaurants, userEmail }: Props) {
 
   return (
     <div
-      className="h-dvh flex flex-col overflow-hidden"
+      className="h-dvh relative overflow-hidden"
       style={{ backgroundColor: '#F7F3EE' }}
     >
-      {/* Frosted glass header — in normal flow so iOS never loses it */}
+      {/* Frosted glass header */}
       <header
-        className="backdrop-blur-md shrink-0"
+        className="absolute top-0 left-0 right-0 backdrop-blur-md"
         style={{
+          zIndex: 50,
           backgroundColor: 'rgba(247, 243, 238, 0.88)',
           borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
           paddingTop: 'env(safe-area-inset-top)',
-          position: 'relative',
-          zIndex: 100,
         }}
       >
         <div
           className="flex items-center justify-between px-4"
           style={{ height: 52 }}
         >
-          <span
-            className="font-semibold text-base shrink truncate mr-3"
-            style={{ color: '#C2410C' }}
-          >
-            PDX Deliciousness Finder
-          </span>
+          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+            <span
+              className="font-semibold text-base"
+              style={{ color: '#C2410C', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              PDX Deliciousness Finder
+            </span>
+          </div>
 
-          <div className="flex items-center shrink-0" style={{ gap: 8 }}>
+          <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
             {/* Map / List toggle */}
             <div
               style={{
@@ -175,9 +176,9 @@ export default function HomeView({ restaurants, userEmail }: Props) {
         />
       )}
 
-      {/* Content area — flex-1 fills remaining height below the header */}
-      <main className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
-        <div style={{ position: 'absolute', inset: 0 }}>
+      {/* Full-bleed content area */}
+      <main className="absolute inset-0">
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
 
           {view === 'map' && (
             <MapView
@@ -192,7 +193,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                paddingTop: 0,
+                paddingTop: 'calc(52px + env(safe-area-inset-top))',
                 backgroundColor: '#F7F3EE',
               }}
             >
