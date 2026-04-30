@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps'
 import { Utensils, Wine, Beer, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -102,12 +101,13 @@ function PinMarker({ restaurant, selected }: { restaurant: Restaurant; selected:
 }
 
 type Props = {
-  restaurants: Restaurant[]
+  filteredRestaurants: Restaurant[]
+  selectedId: string | null
+  onSelectId: (id: string | null) => void
 }
 
-export default function MapView({ restaurants }: Props) {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const selected = restaurants.find((r) => r.id === selectedId) ?? null
+export default function MapView({ filteredRestaurants, selectedId, onSelectId }: Props) {
+  const selected = filteredRestaurants.find((r) => r.id === selectedId) ?? null
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -117,13 +117,13 @@ export default function MapView({ restaurants }: Props) {
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? ''}
           style={{ width: '100%', height: '100%' }}
           gestureHandling="greedy"
-          onClick={() => setSelectedId(null)}
+          onClick={() => onSelectId(null)}
         >
-          {restaurants.map((r) => (
+          {filteredRestaurants.map((r) => (
             <AdvancedMarker
               key={r.id}
               position={{ lat: r.latitude, lng: r.longitude }}
-              onClick={() => setSelectedId(r.id)}
+              onClick={() => onSelectId(r.id)}
               zIndex={selectedId === r.id ? 10 : 1}
             >
               <PinMarker restaurant={r} selected={selectedId === r.id} />
@@ -131,34 +131,11 @@ export default function MapView({ restaurants }: Props) {
           ))}
         </Map>
 
-        {!selected && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 24,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              backgroundColor: 'rgba(247, 243, 238, 0.92)',
-              backdropFilter: 'blur(8px)',
-              borderRadius: 999,
-              padding: '8px 18px',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-            }}
-          >
-            <span style={{ fontSize: 13, color: '#6B6560' }}>
-              <span style={{ fontWeight: 600, color: '#1C1917' }}>{restaurants.length}</span>
-              {' '}places saved · tap a pin to explore
-            </span>
-          </div>
-        )}
-
         {selected && (
           <RestaurantPanel
             key={selected.id}
             restaurant={selected}
-            onClose={() => setSelectedId(null)}
+            onClose={() => onSelectId(null)}
           />
         )}
       </div>
