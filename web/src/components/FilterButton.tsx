@@ -11,13 +11,13 @@ export default function FilterButton({ activeCount, onClick }: Props) {
       onClick={onClick}
       style={{
         position: 'absolute',
-        top: 60,
+        top: 'calc(60px + env(safe-area-inset-top))',
         right: 16,
         zIndex: 20,
         display: 'flex',
         alignItems: 'center',
         gap: 6,
-        padding: '7px 14px',
+        padding: '13px 14px',
         backgroundColor: 'rgba(247, 243, 238, 0.92)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(237, 232, 227, 0.9)',

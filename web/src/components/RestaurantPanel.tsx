@@ -211,11 +211,12 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
 
       {/* Expanded detail — scrollable */}
       <div
-        className="flex-1 overflow-y-auto px-4 pb-6"
+        className="flex-1 overflow-y-auto px-4"
         style={{
           opacity: expanded ? 1 : 0,
           transition: 'opacity 0.15s ease',
           pointerEvents: expanded ? 'auto' : 'none',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
         }}
       >
         {(restaurant.cuisine || restaurant.address || restaurant.neighborhood || restaurant.website) && (

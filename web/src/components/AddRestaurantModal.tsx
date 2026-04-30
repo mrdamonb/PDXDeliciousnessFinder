@@ -168,7 +168,10 @@ export default function AddRestaurantModal({ onClose, onSaveSuccess }: Props) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
+        paddingTop: 'calc(52px + env(safe-area-inset-top) + 16px)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+        paddingLeft: 16,
+        paddingRight: 16,
       }}
     >
       <div

@@ -68,90 +68,99 @@ export default function HomeView({ restaurants, userEmail }: Props) {
       className="h-dvh relative overflow-hidden"
       style={{ backgroundColor: '#F7F3EE' }}
     >
-      {/* Frosted glass header — floats over the full-bleed content */}
+      {/* Frosted glass header — fixed so it stays put during swipe gestures and viewport changes */}
       <header
-        className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 backdrop-blur-md"
+        className="backdrop-blur-md"
         style={{
-          height: 52,
-          zIndex: 50,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 65,
           backgroundColor: 'rgba(247, 243, 238, 0.88)',
           borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
+          paddingTop: 'env(safe-area-inset-top)',
         }}
       >
-        <span className="font-semibold text-base" style={{ color: '#C2410C' }}>
-          PDX Deliciousness Finder
-        </span>
+        <div
+          className="flex items-center justify-between px-4"
+          style={{ height: 52 }}
+        >
+          <span className="font-semibold text-base" style={{ color: '#C2410C' }}>
+            PDX Deliciousness Finder
+          </span>
 
-        <div className="flex items-center" style={{ gap: 10 }}>
-          {/* Map / List toggle */}
-          <div
-            style={{
-              display: 'flex',
-              backgroundColor: '#EDE8E3',
-              borderRadius: 8,
-              padding: 2,
-              gap: 0,
-            }}
-          >
-            <button
-              onClick={() => setView('map')}
+          <div className="flex items-center" style={{ gap: 10 }}>
+            {/* Map / List toggle */}
+            <div
               style={{
-                padding: '4px 10px',
-                borderRadius: 6,
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: view === 'map' ? 'white' : 'transparent',
-                boxShadow: view === 'map' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
                 display: 'flex',
-                alignItems: 'center',
-                transition: 'all 0.15s',
+                backgroundColor: '#EDE8E3',
+                borderRadius: 8,
+                padding: 2,
+                gap: 0,
               }}
-              aria-label="Map view"
             >
-              <MapIcon active={view === 'map'} />
-            </button>
-            <button
-              onClick={() => setView('list')}
-              style={{
-                padding: '4px 10px',
-                borderRadius: 6,
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: view === 'list' ? 'white' : 'transparent',
-                boxShadow: view === 'list' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'all 0.15s',
-              }}
-              aria-label="List view"
-            >
-              <ListIcon active={view === 'list'} />
-            </button>
-          </div>
+              <button
+                onClick={() => setView('map')}
+                style={{
+                  padding: '14px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: view === 'map' ? 'white' : 'transparent',
+                  boxShadow: view === 'map' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'all 0.15s',
+                }}
+                aria-label="Map view"
+              >
+                <MapIcon active={view === 'map'} />
+              </button>
+              <button
+                onClick={() => setView('list')}
+                style={{
+                  padding: '14px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: view === 'list' ? 'white' : 'transparent',
+                  boxShadow: view === 'list' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'all 0.15s',
+                }}
+                aria-label="List view"
+              >
+                <ListIcon active={view === 'list'} />
+              </button>
+            </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <UserMenu email={userEmail} />
-            <button
-              onClick={() => setModalOpen(true)}
-              aria-label="Add restaurant"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 999,
-                border: 'none',
-                backgroundColor: '#C2410C',
-                color: '#fff',
-                fontSize: 20,
-                lineHeight: 1,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              +
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <UserMenu email={userEmail} />
+              <button
+                onClick={() => setModalOpen(true)}
+                aria-label="Add restaurant"
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 999,
+                  border: 'none',
+                  backgroundColor: '#C2410C',
+                  color: '#fff',
+                  fontSize: 22,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -183,7 +192,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                paddingTop: 52,
+                paddingTop: 'calc(52px + env(safe-area-inset-top))',
                 backgroundColor: '#F7F3EE',
               }}
             >
@@ -220,7 +229,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             <div
               style={{
                 position: 'absolute',
-                bottom: 24,
+                bottom: 'calc(24px + env(safe-area-inset-bottom))',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 backgroundColor: 'rgba(247, 243, 238, 0.92)',
