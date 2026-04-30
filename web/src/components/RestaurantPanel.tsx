@@ -110,7 +110,7 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
         borderRadius: '24px 24px 0 0',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.13)',
         zIndex: 10,
-        height: expanded ? '60vh' : 180,
+        height: expanded ? '60dvh' : 180,
         transition: 'height 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         overflow: 'hidden',
       }}
@@ -125,6 +125,7 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
           const dy = e.changedTouches[0].clientY - dragStartY.current
           dragStartY.current = null
           if (Math.abs(dy) < 10) return
+          e.preventDefault() // suppress synthesized click that would toggle state back
           if (dy < 0) setExpanded(true)
           else if (expanded) setExpanded(false)
           else onClose()
