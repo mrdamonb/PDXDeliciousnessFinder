@@ -95,7 +95,7 @@ npx tsc --noEmit  # type check only
 | S2 — Map View (Google Maps + restaurant pins) | ✅ Complete |
 | S3 — Restaurant List + Filtering | ✅ Complete |
 | S4 — Add Restaurant (search-places Edge Function) | ✅ Complete |
-| S5 — Visit Log | Backlog |
+| S5 — Visit Log | ✅ Complete |
 
 ---
 
