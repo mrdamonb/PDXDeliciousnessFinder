@@ -209,12 +209,27 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
         </div>
       </div>
 
+      {/* Fade gradient — teases content below when collapsed */}
+      {!expanded && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 52,
+            background: 'linear-gradient(to bottom, transparent, #F7F3EE)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
+      )}
+
       {/* Expanded detail — scrollable */}
       <div
-        className="flex-1 overflow-y-auto px-4"
+        className="flex-1 px-4"
         style={{
-          opacity: expanded ? 1 : 0,
-          transition: 'opacity 0.15s ease',
+          overflowY: expanded ? 'auto' : 'hidden',
           pointerEvents: expanded ? 'auto' : 'none',
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
         }}
