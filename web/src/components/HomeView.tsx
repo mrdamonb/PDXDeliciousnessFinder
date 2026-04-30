@@ -231,7 +231,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             <div
               style={{
                 position: 'absolute',
-                bottom: 'calc(24px + env(safe-area-inset-bottom))',
+                bottom: 'calc(72px + env(safe-area-inset-bottom))',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 backgroundColor: 'rgba(247, 243, 238, 0.92)',
