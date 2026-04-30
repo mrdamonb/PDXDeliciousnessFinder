@@ -93,8 +93,8 @@ npx tsc --noEmit  # type check only
 |---|---|
 | S1 — Foundation (auth, scaffold, deploy) | ✅ Complete |
 | S2 — Map View (Google Maps + restaurant pins) | ✅ Complete |
-| S3 — Restaurant List + Filtering | Backlog |
-| S4 — Add Restaurant (search-places Edge Function) | Backlog |
+| S3 — Restaurant List + Filtering | ✅ Complete |
+| S4 — Add Restaurant (search-places Edge Function) | ✅ Complete |
 | S5 — Visit Log | Backlog |
 
 ---
