@@ -142,6 +142,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               <UserMenu email={userEmail} />
               <button
                 onClick={() => setModalOpen(true)}
+                disabled={modalOpen}
                 aria-label="Add restaurant"
                 style={{
                   width: 38,
@@ -152,7 +153,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                   color: '#fff',
                   fontSize: 20,
                   lineHeight: 1,
-                  cursor: 'pointer',
+                  cursor: modalOpen ? 'default' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

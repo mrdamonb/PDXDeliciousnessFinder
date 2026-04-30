@@ -164,7 +164,7 @@ export default function AddRestaurantModal({ onClose, onSaveSuccess }: Props) {
         position: 'fixed',
         inset: 0,
         backgroundColor: 'rgba(0,0,0,0.4)',
-        zIndex: 60,
+        zIndex: 45,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
