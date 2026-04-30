@@ -65,32 +65,31 @@ export default function HomeView({ restaurants, userEmail }: Props) {
 
   return (
     <div
-      className="h-dvh relative overflow-hidden"
+      className="h-dvh flex flex-col overflow-hidden"
       style={{ backgroundColor: '#F7F3EE' }}
     >
-      {/* Frosted glass header — fixed so it stays put during swipe gestures and viewport changes */}
+      {/* Frosted glass header — in normal flow so iOS never loses it */}
       <header
-        className="backdrop-blur-md"
+        className="backdrop-blur-md shrink-0"
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 65,
           backgroundColor: 'rgba(247, 243, 238, 0.88)',
           borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
           paddingTop: 'env(safe-area-inset-top)',
+          zIndex: 10,
         }}
       >
         <div
           className="flex items-center justify-between px-4"
           style={{ height: 52 }}
         >
-          <span className="font-semibold text-base" style={{ color: '#C2410C' }}>
+          <span
+            className="font-semibold text-base shrink truncate mr-3"
+            style={{ color: '#C2410C' }}
+          >
             PDX Deliciousness Finder
           </span>
 
-          <div className="flex items-center" style={{ gap: 10 }}>
+          <div className="flex items-center shrink-0" style={{ gap: 8 }}>
             {/* Map / List toggle */}
             <div
               style={{
@@ -137,19 +136,19 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <UserMenu email={userEmail} />
               <button
                 onClick={() => setModalOpen(true)}
                 aria-label="Add restaurant"
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 38,
+                  height: 38,
                   borderRadius: 999,
                   border: 'none',
                   backgroundColor: '#C2410C',
                   color: '#fff',
-                  fontSize: 22,
+                  fontSize: 20,
                   lineHeight: 1,
                   cursor: 'pointer',
                   display: 'flex',
@@ -175,8 +174,8 @@ export default function HomeView({ restaurants, userEmail }: Props) {
         />
       )}
 
-      {/* Full-bleed content area — starts at top:0, header overlays it */}
-      <main className="absolute inset-0">
+      {/* Content area — flex-1 fills remaining height below the header */}
+      <main className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
 
           {view === 'map' && (
@@ -192,7 +191,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                paddingTop: 'calc(52px + env(safe-area-inset-top))',
+                paddingTop: 0,
                 backgroundColor: '#F7F3EE',
               }}
             >
