@@ -2,23 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Utensils, Wine, Beer, Store } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { saveRestaurant } from '@/app/actions'
+import { searchPlaces, saveRestaurant, type PlaceResult } from '@/app/actions'
 
 type VenueTypeCamel = 'restaurant' | 'bar' | 'brewery' | 'foodCart'
 type VenueTypeSnake = 'restaurant' | 'bar' | 'brewery' | 'food_cart'
 type Status = 'want_to_go' | 'been_there' | 'favorite'
 type PriceRange = '$' | '$$' | '$$$' | '$$$$'
 
-type SearchResult = {
-  name: string | null
-  address: string | null
-  latitude: number | null
-  longitude: number | null
-  cuisine: string | null
-  venueType: VenueTypeCamel | null
-  priceRange: PriceRange | null
-}
+type SearchResult = PlaceResult
 
 type ConfirmState = {
   name: string
@@ -96,14 +87,9 @@ export default function AddRestaurantModal({ onClose, onSaveSuccess }: Props) {
     setSearching(true)
     setSearchError(null)
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.functions.invoke('search-places', {
-        body: { query: q, limit: 5 },
-      })
+      const results = await searchPlaces(q)
       if (seq !== searchSeqRef.current) return // stale response
-      if (error) throw error
-      if (!data?.success) throw new Error(data?.error ?? 'Search failed')
-      setResults(data.results ?? [])
+      setResults(results)
     } catch (e) {
       if (seq !== searchSeqRef.current) return
       console.error('[AddRestaurantModal] search error:', e)
