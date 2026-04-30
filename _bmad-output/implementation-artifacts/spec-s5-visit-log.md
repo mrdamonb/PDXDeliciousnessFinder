@@ -2,7 +2,7 @@
 title: 'PDX Deliciousness Finder — Web App S5: Visit Log'
 type: 'feature'
 created: '2026-04-29'
-status: 'in-progress'
+status: 'done'
 baseline_commit: 'd5b69b62da114301c6f7cc6010bf1bfef84c8894'
 context:
   - '_bmad-output/planning-artifacts/epics.md'
@@ -96,3 +96,35 @@ context:
 - Submit form on a "Want to Go" restaurant → status badge flips to "Been There"
 - Submit form with no note → visit row shows date only, no empty line
 - Cancel form → list unchanged
+
+## Suggested Review Order
+
+**Server actions — new data layer**
+
+- `VisitLog` type + `getVisitLogs`: RLS-safe fetch ordered newest-first
+  [`actions.ts:62`](../../web/src/app/actions.ts#L62)
+
+- `logVisit`: insert → status check (`.maybeSingle()`) → conditional update → return flag
+  [`actions.ts:87`](../../web/src/app/actions.ts#L87)
+
+**Client state — visit log in RestaurantPanel**
+
+- `restaurant.id` reset effect — clears stale visits when switching pins
+  [`RestaurantPanel.tsx:57`](../../web/src/components/RestaurantPanel.tsx#L57)
+
+- Lazy fetch effect — fires once on first expansion, guarded by `visits === null`
+  [`RestaurantPanel.tsx:64`](../../web/src/components/RestaurantPanel.tsx#L64)
+
+- `handleSave`: date guard + logVisit call + sort-correct optimistic update + conditional refresh
+  [`RestaurantPanel.tsx:79`](../../web/src/components/RestaurantPanel.tsx#L79)
+
+**UI — visit log section rendering**
+
+- Section header with "+" button; border conditional on content presence
+  [`RestaurantPanel.tsx:270`](../../web/src/components/RestaurantPanel.tsx#L270)
+
+- Inline log form: date input, textarea, Save/Cancel, error display
+  [`RestaurantPanel.tsx:307`](../../web/src/components/RestaurantPanel.tsx#L307)
+
+- Visit list: loading / error / empty / rows with `.slice(0,10)` date normalization
+  [`RestaurantPanel.tsx:347`](../../web/src/components/RestaurantPanel.tsx#L347)

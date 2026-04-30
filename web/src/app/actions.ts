@@ -59,3 +59,68 @@ export async function saveRestaurant(data: SaveRestaurantData) {
 
   if (error) throw new Error(error.message)
 }
+
+export type VisitLog = {
+  id: string
+  restaurant_id: string
+  visited_at: string
+  note: string | null
+  created_at: string
+}
+
+export async function getVisitLogs(restaurantId: string): Promise<VisitLog[]> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('visit_logs')
+    .select('id, restaurant_id, visited_at, note, created_at')
+    .eq('restaurant_id', restaurantId)
+    .eq('user_id', user.id)
+    .order('visited_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return (data ?? []) as VisitLog[]
+}
+
+export async function logVisit(
+  restaurantId: string,
+  visitedAt: string,
+  note: string | null,
+): Promise<{ visit: VisitLog; statusChanged: boolean }> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('visit_logs')
+    .insert({ restaurant_id: restaurantId, user_id: user.id, visited_at: visitedAt, note })
+    .select('id, restaurant_id, visited_at, note, created_at')
+    .single()
+
+  if (insertError) throw new Error(insertError.message)
+
+  const { data: restaurant, error: fetchError } = await supabase
+    .from('restaurants')
+    .select('status')
+    .eq('id', restaurantId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (fetchError) throw new Error(fetchError.message)
+
+  let statusChanged = false
+  if (restaurant?.status === 'want_to_go') {
+    const { error: updateError } = await supabase
+      .from('restaurants')
+      .update({ status: 'been_there' })
+      .eq('id', restaurantId)
+      .eq('user_id', user.id)
+
+    if (updateError) throw new Error(updateError.message)
+    statusChanged = true
+  }
+
+  return { visit: inserted as VisitLog, statusChanged }
+}

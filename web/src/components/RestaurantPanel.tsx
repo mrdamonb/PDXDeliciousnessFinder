@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, X, ChevronDown } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, X, ChevronDown, Clock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Restaurant } from '@/lib/supabase/restaurants'
+import { getVisitLogs, logVisit, type VisitLog } from '@/app/actions'
 
 const STATUS_COLORS: Record<Restaurant['status'], string> = {
   want_to_go: '#D97706',
@@ -37,9 +39,67 @@ type Props = {
 }
 
 export default function RestaurantPanel({ restaurant, onClose }: Props) {
+  const router = useRouter()
   const [expanded, setExpanded] = useState(false)
   const statusColor = STATUS_COLORS[restaurant.status]
   const VenueIcon = restaurant.venue_type ? (VENUE_ICONS[restaurant.venue_type] ?? UtensilsCrossed) : null
+
+  // Visit log state
+  const [visits, setVisits] = useState<VisitLog[] | null>(null)
+  const [visitsLoading, setVisitsLoading] = useState(false)
+  const [visitsError, setVisitsError] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [formNote, setFormNote] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Reset visits when restaurant changes so we don't show stale data
+  useEffect(() => {
+    setVisits(null)
+    setVisitsError(null)
+    setShowForm(false)
+  }, [restaurant.id])
+
+  // Fetch visits once when first expanded
+  useEffect(() => {
+    if (!expanded || visits !== null) return
+    setVisitsLoading(true)
+    setVisitsError(null)
+    getVisitLogs(restaurant.id)
+      .then((data) => setVisits(data))
+      .catch(() => setVisitsError('Could not load visits.'))
+      .finally(() => setVisitsLoading(false))
+  }, [expanded, restaurant.id, visits])
+
+  function resetForm() {
+    setFormDate(new Date().toISOString().split('T')[0])
+    setFormNote('')
+    setSaveError(null)
+    setShowForm(false)
+  }
+
+  async function handleSave() {
+    if (!formDate) {
+      setSaveError('Please enter a date.')
+      return
+    }
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const { visit, statusChanged } = await logVisit(restaurant.id, formDate, formNote.trim() || null)
+      setVisits((prev) => {
+        const updated = [visit, ...(prev ?? [])]
+        return updated.sort((a, b) => b.visited_at.localeCompare(a.visited_at))
+      })
+      resetForm()
+      if (statusChanged) router.refresh()
+    } catch {
+      setSaveError('Could not save. Try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div
@@ -197,7 +257,7 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
 
         {restaurant.general_note && (
           <div
-            className="bg-white rounded-2xl p-4"
+            className="bg-white rounded-2xl p-4 mb-3"
             style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
           >
             <div className="flex items-center gap-2 mb-2">
@@ -214,6 +274,121 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
             </p>
           </div>
         )}
+
+        {/* Visit log section */}
+        <div
+          className="bg-white rounded-2xl overflow-hidden"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          {/* Section header */}
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ borderBottom: showForm || (visits && visits.length > 0) ? '1px solid #F0EBE5' : undefined }}
+          >
+            <div className="flex items-center gap-2">
+              <Clock size={14} strokeWidth={2} style={{ color: '#A8A09A' }} />
+              <span
+                className="text-xs font-semibold uppercase tracking-wide"
+                style={{ color: '#A8A09A' }}
+              >
+                Visits
+              </span>
+            </div>
+            {!showForm && (
+              <button
+                onClick={() => setShowForm(true)}
+                aria-label="Log a visit"
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 999,
+                  border: 'none',
+                  backgroundColor: '#C2410C',
+                  color: '#fff',
+                  fontSize: 16,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                +
+              </button>
+            )}
+          </div>
+
+          {/* Inline log form */}
+          {showForm && (
+            <div className="px-4 py-3" style={{ borderBottom: '1px solid #F0EBE5' }}>
+              <input
+                type="date"
+                value={formDate}
+                onChange={(e) => setFormDate(e.target.value)}
+                className="w-full text-sm p-2 rounded-lg mb-2"
+                style={{ border: '1px solid #D1C9C0', color: '#1C1917' }}
+              />
+              <textarea
+                value={formNote}
+                onChange={(e) => setFormNote(e.target.value)}
+                placeholder="Note (optional)"
+                rows={2}
+                className="w-full text-sm p-2 rounded-lg mb-2 resize-none"
+                style={{ border: '1px solid #D1C9C0', color: '#1C1917' }}
+              />
+              {saveError && (
+                <p className="text-xs mb-2" style={{ color: '#DC2626' }}>{saveError}</p>
+              )}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="text-sm font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity"
+                  style={{ backgroundColor: '#C2410C', opacity: saving ? 0.6 : 1 }}
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="text-sm transition-opacity hover:opacity-60"
+                  style={{ color: '#6B6560' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Visit list */}
+          {visitsLoading && (
+            <p className="px-4 py-3 text-sm" style={{ color: '#A8A09A' }}>Loading…</p>
+          )}
+          {visitsError && (
+            <p className="px-4 py-3 text-sm" style={{ color: '#A8A09A' }}>{visitsError}</p>
+          )}
+          {!visitsLoading && !visitsError && visits !== null && visits.length === 0 && !showForm && (
+            <p className="px-4 py-3 text-sm" style={{ color: '#A8A09A' }}>No visits yet.</p>
+          )}
+          {!visitsLoading && !visitsError && visits && visits.length > 0 && visits.map((v, i) => (
+            <div
+              key={v.id}
+              className="px-4 py-3"
+              style={{ borderTop: i === 0 && !showForm ? undefined : '1px solid #F0EBE5' }}
+            >
+              <p className="text-sm font-medium" style={{ color: '#1C1917' }}>
+                {new Date(v.visited_at.slice(0, 10) + 'T12:00:00').toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </p>
+              {v.note && (
+                <p className="text-sm mt-0.5" style={{ color: '#6B6560' }}>{v.note}</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
