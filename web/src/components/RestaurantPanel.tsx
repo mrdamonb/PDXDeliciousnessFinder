@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, X, ChevronDown, Clock } from 'lucide-react'
+import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, X, ChevronDown, Clock, Pencil, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Restaurant } from '@/lib/supabase/restaurants'
-import { getVisitLogs, logVisit, type VisitLog } from '@/app/actions'
+import { getVisitLogs, logVisit, deleteRestaurant, type VisitLog } from '@/app/actions'
 
 const STATUS_COLORS: Record<Restaurant['status'], string> = {
   want_to_go: '#D97706',
@@ -36,14 +36,30 @@ const VENUE_ICONS: Record<string, LucideIcon> = {
 type Props = {
   restaurant: Restaurant
   onClose: () => void
+  onEdit: () => void
+  onDelete: () => void
 }
 
-export default function RestaurantPanel({ restaurant, onClose }: Props) {
+export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete }: Props) {
   const router = useRouter()
   const [expanded, setExpanded] = useState(false)
   const dragStartY = useRef<number | null>(null)
   const statusColor = STATUS_COLORS[restaurant.status]
   const VenueIcon = restaurant.venue_type ? (VENUE_ICONS[restaurant.venue_type] ?? UtensilsCrossed) : null
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      await deleteRestaurant(restaurant.id)
+      onDelete()
+    } catch {
+      setDeleting(false)
+      setConfirmingDelete(false)
+    }
+  }
 
   // Visit log state
   const [visits, setVisits] = useState<VisitLog[] | null>(null)
@@ -182,6 +198,29 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
         </div>
 
         <div className="flex items-center gap-0.5 shrink-0 mt-0.5">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit()
+            }}
+            className="p-1.5 rounded-lg transition-opacity hover:opacity-60"
+            style={{ color: '#6B6560' }}
+            aria-label="Edit restaurant"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setConfirmingDelete(true)
+              setExpanded(true)
+            }}
+            className="p-1.5 rounded-lg transition-opacity hover:opacity-60"
+            style={{ color: '#6B6560' }}
+            aria-label="Delete restaurant"
+          >
+            <Trash2 size={16} />
+          </button>
           {expanded && (
             <button
               onClick={(e) => {
@@ -208,6 +247,53 @@ export default function RestaurantPanel({ restaurant, onClose }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Delete confirmation strip */}
+      {confirmingDelete && (
+        <div
+          className="shrink-0 mx-4 mb-3 rounded-2xl overflow-hidden"
+          style={{ border: '1px solid #FECACA', backgroundColor: '#FEF2F2' }}
+        >
+          <p style={{ fontSize: 13, color: '#DC2626', textAlign: 'center', padding: '10px 16px 8px', margin: 0 }}>
+            Delete <strong>{restaurant.name}</strong>?
+          </p>
+          <div style={{ display: 'flex', borderTop: '1px solid #FECACA' }}>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{
+                flex: 1,
+                padding: '10px',
+                background: 'none',
+                border: 'none',
+                borderRight: '1px solid #FECACA',
+                color: '#DC2626',
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: deleting ? 'not-allowed' : 'pointer',
+                opacity: deleting ? 0.6 : 1,
+              }}
+            >
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+            <button
+              onClick={() => setConfirmingDelete(false)}
+              disabled={deleting}
+              style={{
+                flex: 1,
+                padding: '10px',
+                background: 'none',
+                border: 'none',
+                color: '#6B6560',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Fade gradient — teases content below when collapsed */}
       {!expanded && (

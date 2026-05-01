@@ -48,9 +48,10 @@ const ACCENT = '#C2410C'
 type Props = {
   onClose: () => void
   onSaveSuccess: () => void
+  onImport: () => void
 }
 
-export default function AddRestaurantModal({ onClose, onSaveSuccess }: Props) {
+export default function AddRestaurantModal({ onClose, onSaveSuccess, onImport }: Props) {
   const [panel, setPanel] = useState<'search' | 'confirm'>('search')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
@@ -197,8 +198,9 @@ export default function AddRestaurantModal({ onClose, onSaveSuccess }: Props) {
             searchError={searchError}
             onSelect={selectResult}
             onClose={onClose}
+            onImport={onImport}
           />
-        ) : confirm ? (
+        ) : confirm !== null ? (
           <ConfirmPanel
             confirm={confirm}
             onChange={setConfirm}
@@ -224,9 +226,10 @@ type SearchPanelProps = {
   searchError: string | null
   onSelect: (r: SearchResult) => void
   onClose: () => void
+  onImport: () => void
 }
 
-function SearchPanel({ query, inputRef, onChange, results, searching, searchError, onSelect, onClose }: SearchPanelProps) {
+function SearchPanel({ query, inputRef, onChange, results, searching, searchError, onSelect, onClose, onImport }: SearchPanelProps) {
   const showEmpty = !searching && !searchError && query.trim().length >= 3 && results.length === 0
   return (
     <>
@@ -248,7 +251,7 @@ function SearchPanel({ query, inputRef, onChange, results, searching, searchErro
         </button>
       </div>
 
-      <div style={{ padding: '12px 16px' }}>
+      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <input
           ref={inputRef}
           value={query}
@@ -266,6 +269,22 @@ function SearchPanel({ query, inputRef, onChange, results, searching, searchErro
             boxSizing: 'border-box',
           }}
         />
+        <button
+          onClick={onImport}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            fontSize: 13,
+            color: '#C2410C',
+            cursor: 'pointer',
+            textAlign: 'left',
+            textDecoration: 'underline',
+            textDecorationColor: 'rgba(194,65,12,0.4)',
+          }}
+        >
+          Import a list instead
+        </button>
       </div>
 
       {searching && (

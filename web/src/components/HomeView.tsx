@@ -16,6 +16,8 @@ import UserMenu from './UserMenu'
 import FilterButton from './FilterButton'
 import FilterPopover from './FilterPopover'
 import ListView from './ListView'
+import ImportModal from './ImportModal'
+import EditRestaurantModal from './EditRestaurantModal'
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false })
 
@@ -54,6 +56,8 @@ export default function HomeView({ restaurants, userEmail }: Props) {
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [importModalOpen, setImportModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const filterOptions = getFilterOptions(restaurants)
   const filteredRestaurants = filterRestaurants(restaurants, filterState)
@@ -174,6 +178,39 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             setModalOpen(false)
             router.refresh()
           }}
+          onImport={() => {
+            setModalOpen(false)
+            setImportModalOpen(true)
+          }}
+        />
+      )}
+
+      {editingId && (() => {
+        const editingRestaurant = restaurants.find((r) => r.id === editingId) ?? null
+        return editingRestaurant ? (
+          <EditRestaurantModal
+            restaurant={editingRestaurant}
+            onClose={() => setEditingId(null)}
+            onSaveSuccess={() => {
+              setEditingId(null)
+              router.refresh()
+            }}
+            onDeleteSuccess={() => {
+              setEditingId(null)
+              setSelectedId(null)
+              router.refresh()
+            }}
+          />
+        ) : null
+      })()}
+
+      {importModalOpen && (
+        <ImportModal
+          onClose={() => setImportModalOpen(false)}
+          onSaveSuccess={() => {
+            setImportModalOpen(false)
+            router.refresh()
+          }}
         />
       )}
 
@@ -186,6 +223,11 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               filteredRestaurants={filteredRestaurants}
               selectedId={selectedId}
               onSelectId={setSelectedId}
+              onEdit={setEditingId}
+              onDelete={() => {
+                setSelectedId(null)
+                router.refresh()
+              }}
             />
           )}
 
@@ -226,8 +268,76 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             />
           )}
 
-          {/* Resting pill — map view only, no restaurant selected */}
-          {view === 'map' && !selectedId && (
+          {/* Empty state — map view, zero restaurants */}
+          {view === 'map' && restaurants.length === 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 15,
+                width: '100%',
+                maxWidth: 300,
+                padding: '0 24px',
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: 'rgba(247, 243, 238, 0.97)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: 20,
+                  padding: '24px',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+                  textAlign: 'center',
+                }}
+              >
+                <p style={{ fontSize: 16, fontWeight: 600, color: '#1C1917', margin: '0 0 6px' }}>
+                  No places saved yet
+                </p>
+                <p style={{ fontSize: 13, color: '#6B6560', margin: '0 0 16px' }}>
+                  Add your favorite Portland restaurants, bars, and food carts.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: 10,
+                      border: 'none',
+                      backgroundColor: '#C2410C',
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Add your first place
+                  </button>
+                  <button
+                    onClick={() => setImportModalOpen(true)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: 10,
+                      border: '1px solid #D1C9C0',
+                      backgroundColor: 'transparent',
+                      color: '#6B6560',
+                      fontWeight: 500,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Import a list
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Resting pill — map view only, no restaurant selected, has restaurants */}
+          {view === 'map' && !selectedId && restaurants.length > 0 && (
             <div
               style={{
                 position: 'absolute',

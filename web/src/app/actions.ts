@@ -2,6 +2,14 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+function createServiceClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
 
 export async function signOut() {
   const supabase = createClient()
@@ -82,6 +90,120 @@ export async function getVisitLogs(restaurantId: string): Promise<VisitLog[]> {
 
   if (error) throw new Error(error.message)
   return (data ?? []) as VisitLog[]
+}
+
+export type UpdateRestaurantData = {
+  name: string
+  venue_type: string | null
+  cuisine: string | null
+  price_range: string | null
+  status: 'want_to_go' | 'been_there' | 'favorite'
+  general_note: string | null
+  website: string | null
+}
+
+export async function updateRestaurant(id: string, data: UpdateRestaurantData): Promise<void> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('restaurants')
+    .update(data)
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) throw new Error(error.message)
+}
+
+export type DbMatch = {
+  name: string
+  venue_type: string | null
+  cuisine: string | null
+  price_range: string | null
+  website: string | null
+  address: string | null
+  latitude: number
+  longitude: number
+}
+
+function normalizeForMatch(s: string): string {
+  return s.toLowerCase().replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"').trim()
+}
+
+export async function bulkLookupRestaurants(names: string[]): Promise<Record<string, DbMatch | null>> {
+  if (names.length === 0) return {}
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const serviceClient = createServiceClient()
+  const { data, error } = await serviceClient
+    .from('restaurants')
+    .select('name, venue_type, cuisine, price_range, website, address, latitude, longitude')
+    .not('latitude', 'is', null)
+    .not('longitude', 'is', null)
+    .order('created_at', { ascending: true })
+
+  if (error) throw new Error(error.message)
+
+  // Build normalized-name → first match map (covers curly vs straight apostrophe differences)
+  const byNormalizedName = new Map<string, DbMatch>()
+  for (const row of data ?? []) {
+    const key = normalizeForMatch(row.name)
+    if (!byNormalizedName.has(key)) byNormalizedName.set(key, row as DbMatch)
+  }
+
+  const result: Record<string, DbMatch | null> = {}
+  for (const name of names) {
+    result[name] = byNormalizedName.get(normalizeForMatch(name)) ?? null
+  }
+  return result
+}
+
+export type BulkImportRow = {
+  name: string
+  address: string | null
+  latitude: number
+  longitude: number
+  venue_type: string | null
+  cuisine: string | null
+  price_range: string | null
+  website: string | null
+}
+
+export async function bulkSaveRestaurants(rows: BulkImportRow[]): Promise<void> {
+  if (rows.length === 0) return
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const records = rows.map(r => ({
+    ...r,
+    user_id: user.id,
+    status: 'want_to_go' as const,
+    city: 'Portland',
+  }))
+
+  const { error } = await supabase
+    .from('restaurants')
+    .insert(records)
+
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteRestaurant(id: string): Promise<void> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('restaurants')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) throw new Error(error.message)
 }
 
 export async function logVisit(

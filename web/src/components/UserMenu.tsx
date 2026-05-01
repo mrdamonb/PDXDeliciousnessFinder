@@ -71,7 +71,6 @@ export default function UserMenu({ email }: Props) {
             >
               {email}
             </p>
-            <div style={{ height: 1, backgroundColor: '#EDE8E3', margin: '4px 0' }} />
             <form action={signOut}>
               <button
                 type="submit"

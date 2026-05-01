@@ -104,9 +104,11 @@ type Props = {
   filteredRestaurants: Restaurant[]
   selectedId: string | null
   onSelectId: (id: string | null) => void
+  onEdit: (id: string) => void
+  onDelete: () => void
 }
 
-export default function MapView({ filteredRestaurants, selectedId, onSelectId }: Props) {
+export default function MapView({ filteredRestaurants, selectedId, onSelectId, onEdit, onDelete }: Props) {
   const selected = filteredRestaurants.find((r) => r.id === selectedId) ?? null
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}>
@@ -136,6 +138,8 @@ export default function MapView({ filteredRestaurants, selectedId, onSelectId }:
             key={selected.id}
             restaurant={selected}
             onClose={() => onSelectId(null)}
+            onEdit={() => onEdit(selected.id)}
+            onDelete={onDelete}
           />
         )}
       </div>
