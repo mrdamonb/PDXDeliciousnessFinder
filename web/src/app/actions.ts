@@ -2,14 +2,6 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-
-function createServiceClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-}
 
 export async function signOut() {
   const supabase = createClient()
@@ -137,10 +129,10 @@ export async function bulkLookupRestaurants(names: string[]): Promise<Record<str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  const serviceClient = createServiceClient()
-  const { data, error } = await serviceClient
+  const { data, error } = await supabase
     .from('restaurants')
     .select('name, venue_type, cuisine, price_range, website, address, latitude, longitude')
+    .eq('user_id', user.id)
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
     .order('created_at', { ascending: true })
