@@ -106,7 +106,7 @@ export default function AddRestaurantModal({ onClose, onSaveSuccess, onImport, c
     const q = e.target.value
     setQuery(q)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (q.trim().length < 3) {
+    if (q.trim().length < 2) {
       setResults([])
       setSearchError(null)
       return
