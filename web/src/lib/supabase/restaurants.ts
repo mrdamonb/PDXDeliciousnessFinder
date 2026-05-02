@@ -14,12 +14,13 @@ export type Restaurant = {
   city: string
   website: string | null
   general_note: string | null
+  created_at: string
 }
 
 export async function getRestaurants(supabase: SupabaseClient): Promise<Restaurant[]> {
   const { data, error } = await supabase
     .from('restaurants')
-    .select('id, name, address, latitude, longitude, status, venue_type, cuisine, price_range, neighborhood, city, website, general_note')
+    .select('id, name, address, latitude, longitude, status, venue_type, cuisine, price_range, neighborhood, city, website, general_note, created_at')
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
 

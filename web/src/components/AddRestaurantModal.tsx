@@ -49,9 +49,10 @@ type Props = {
   onClose: () => void
   onSaveSuccess: () => void
   onImport: () => void
+  cuisineSuggestions: string[]
 }
 
-export default function AddRestaurantModal({ onClose, onSaveSuccess, onImport }: Props) {
+export default function AddRestaurantModal({ onClose, onSaveSuccess, onImport, cuisineSuggestions }: Props) {
   const [panel, setPanel] = useState<'search' | 'confirm'>('search')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
@@ -208,6 +209,7 @@ export default function AddRestaurantModal({ onClose, onSaveSuccess, onImport }:
             onSave={handleSave}
             saving={saving}
             saveError={saveError}
+            cuisineSuggestions={cuisineSuggestions}
           />
         ) : null}
       </div>
@@ -369,9 +371,10 @@ type ConfirmPanelProps = {
   onSave: () => void
   saving: boolean
   saveError: string | null
+  cuisineSuggestions: string[]
 }
 
-function ConfirmPanel({ confirm, onChange, onBack, onSave, saving, saveError }: ConfirmPanelProps) {
+function ConfirmPanel({ confirm, onChange, onBack, onSave, saving, saveError, cuisineSuggestions }: ConfirmPanelProps) {
   const canSave = confirm.name.trim().length > 0 && !saving
 
   function set<K extends keyof ConfirmState>(key: K, value: ConfirmState[K]) {
@@ -437,7 +440,11 @@ function ConfirmPanel({ confirm, onChange, onBack, onSave, saving, saveError }: 
             onChange={e => set('cuisine', e.target.value)}
             placeholder="e.g. Mexican, Japanese…"
             style={textInputStyle}
+            list="cuisine-suggestions-add"
           />
+          <datalist id="cuisine-suggestions-add">
+            {cuisineSuggestions.map((c) => <option key={c} value={c} />)}
+          </datalist>
         </Field>
 
         <Field label="Price">

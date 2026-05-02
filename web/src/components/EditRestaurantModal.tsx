@@ -41,9 +41,10 @@ type Props = {
   onClose: () => void
   onSaveSuccess: () => void
   onDeleteSuccess: () => void
+  cuisineSuggestions: string[]
 }
 
-export default function EditRestaurantModal({ restaurant, onClose, onSaveSuccess, onDeleteSuccess }: Props) {
+export default function EditRestaurantModal({ restaurant, onClose, onSaveSuccess, onDeleteSuccess, cuisineSuggestions }: Props) {
   const [form, setForm] = useState<FormState>({
     name: restaurant.name,
     venue_type: (restaurant.venue_type as VenueTypeSnake) ?? null,
@@ -216,7 +217,11 @@ export default function EditRestaurantModal({ restaurant, onClose, onSaveSuccess
               onChange={(e) => set('cuisine', e.target.value)}
               placeholder="e.g. Mexican, Japanese…"
               style={textInputStyle}
+              list="cuisine-suggestions-edit"
             />
+            <datalist id="cuisine-suggestions-edit">
+              {cuisineSuggestions.map((c) => <option key={c} value={c} />)}
+            </datalist>
           </Field>
 
           <Field label="Price">

@@ -62,6 +62,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
   const filterOptions = getFilterOptions(restaurants)
   const filteredRestaurants = filterRestaurants(restaurants, filterState)
   const activeCount = activeFilterCount(filterState)
+  const cuisineSuggestions = Array.from(new Set(restaurants.map((r) => r.cuisine).filter((c): c is string => !!c))).sort()
 
   function clearFilters() {
     setFilterState(EMPTY_FILTER)
@@ -182,6 +183,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             setModalOpen(false)
             setImportModalOpen(true)
           }}
+          cuisineSuggestions={cuisineSuggestions}
         />
       )}
 
@@ -200,6 +202,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               setSelectedId(null)
               router.refresh()
             }}
+            cuisineSuggestions={cuisineSuggestions}
           />
         ) : null
       })()}
