@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps'
 import { Utensils, Wine, Beer, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -108,8 +109,54 @@ type Props = {
   onDelete: () => void
 }
 
+function UserLocationDot() {
+  return (
+    <>
+      <style>{`
+        @keyframes pdx-user-pulse {
+          0%   { transform: scale(1);   opacity: 0.45; }
+          100% { transform: scale(2.6); opacity: 0;    }
+        }
+      `}</style>
+      <div style={{ position: 'relative', width: 18, height: 18 }}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            backgroundColor: '#4285F4',
+            animation: 'pdx-user-pulse 2s ease-out infinite',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            backgroundColor: '#4285F4',
+            border: '2px solid white',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+          }}
+        />
+      </div>
+    </>
+  )
+}
+
 export default function MapView({ filteredRestaurants, selectedId, onSelectId, onEdit, onDelete }: Props) {
   const selected = filteredRestaurants.find((r) => r.id === selectedId) ?? null
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return
+    const id = navigator.geolocation.watchPosition(
+      (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setUserLocation(null),
+      { enableHighAccuracy: true, maximumAge: 30_000, timeout: 15_000 },
+    )
+    return () => navigator.geolocation.clearWatch(id)
+  }, [])
+
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -131,6 +178,12 @@ export default function MapView({ filteredRestaurants, selectedId, onSelectId, o
               <PinMarker restaurant={r} selected={selectedId === r.id} />
             </AdvancedMarker>
           ))}
+
+          {userLocation && (
+            <AdvancedMarker position={userLocation} zIndex={0}>
+              <UserLocationDot />
+            </AdvancedMarker>
+          )}
         </Map>
 
         {selected && (
