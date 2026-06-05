@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps'
+import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
 import { Utensils, Wine, Beer, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Restaurant } from '@/lib/supabase/restaurants'
@@ -143,6 +143,46 @@ function UserLocationDot() {
   )
 }
 
+function LocateMeButton({ userLocation }: { userLocation: { lat: number; lng: number } | null }) {
+  const map = useMap()
+  if (!userLocation) return null
+  return (
+    <button
+      onClick={() => {
+        map?.panTo(userLocation)
+        map?.setZoom(15)
+      }}
+      aria-label="Zoom to my location"
+      style={{
+        position: 'absolute',
+        bottom: 'calc(72px + env(safe-area-inset-bottom))',
+        right: 12,
+        width: 40,
+        height: 40,
+        borderRadius: 8,
+        border: 'none',
+        backgroundColor: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+      }}
+    >
+      {/* Crosshair / locate icon */}
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4285F4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="4" fill="#4285F4" fillOpacity="0.2" />
+        <circle cx="12" cy="12" r="4" />
+        <line x1="12" y1="2" x2="12" y2="6" />
+        <line x1="12" y1="18" x2="12" y2="22" />
+        <line x1="2" y1="12" x2="6" y2="12" />
+        <line x1="18" y1="12" x2="22" y2="12" />
+      </svg>
+    </button>
+  )
+}
+
 export default function MapView({ filteredRestaurants, selectedId, onSelectId, onEdit, onDelete }: Props) {
   const selected = filteredRestaurants.find((r) => r.id === selectedId) ?? null
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -180,11 +220,13 @@ export default function MapView({ filteredRestaurants, selectedId, onSelectId, o
           ))}
 
           {userLocation && (
-            <AdvancedMarker position={userLocation} zIndex={0}>
+            <AdvancedMarker position={userLocation} zIndex={20}>
               <UserLocationDot />
             </AdvancedMarker>
           )}
         </Map>
+
+        <LocateMeButton userLocation={userLocation} />
 
         {selected && (
           <RestaurantPanel
