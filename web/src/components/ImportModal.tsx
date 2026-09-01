@@ -12,7 +12,7 @@ import {
   venueTypeToDB,
   formatVenueType,
   type MatchedRow,
-  type YelpRow,
+  type LookupRow,
   type SkippedRow,
 } from '@/lib/importPipeline'
 
@@ -35,7 +35,7 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
   const [panel, setPanel] = useState<Panel>('paste')
   const [pasteText, setPasteText] = useState('')
   const [matchedRows, setMatchedRows] = useState<MatchedRow[]>([])
-  const [yelpRows, setYelpRows] = useState<YelpRow[]>([])
+  const [lookupRows, setLookupRows] = useState<LookupRow[]>([])
   const [skippedRows, setSkippedRows] = useState<SkippedRow[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
   const [doneState, setDoneState] = useState<DoneState | null>(null)
@@ -52,7 +52,7 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
   }, [onClose])
 
   const canPreview = pasteText.trim().length > 0
-  const actionableCount = matchedRows.length + yelpRows.length
+  const actionableCount = matchedRows.length + lookupRows.length
 
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget && panel !== 'confirming') onClose()
@@ -69,7 +69,7 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
       const lookupMap = names.length > 0 ? await bulkLookupRestaurants(names) : {}
 
       const matched: MatchedRow[] = []
-      const yelp: YelpRow[] = []
+      const lookup: LookupRow[] = []
 
       for (const name of names) {
         const dbMatch = lookupMap[name]
@@ -86,7 +86,7 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
             longitude: dbMatch.longitude,
           })
         } else {
-          yelp.push({ bucket: 'yelp', name })
+          lookup.push({ bucket: 'lookup', name })
         }
       }
 
@@ -96,7 +96,7 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
       }))
 
       setMatchedRows(matched)
-      setYelpRows(yelp)
+      setLookupRows(lookup)
       setSkippedRows(skipped)
       setPanel('preview')
     } catch (e) {
@@ -126,14 +126,14 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
       })
     }
 
-    if (yelpRows.length > 0) {
-      const yelpResults = await Promise.allSettled(
-        yelpRows.map((row) => searchPlaces(row.name))
+    if (lookupRows.length > 0) {
+      const lookupResults = await Promise.allSettled(
+        lookupRows.map((row) => searchPlaces(row.name))
       )
 
-      for (let i = 0; i < yelpResults.length; i++) {
-        const outcome = yelpResults[i]
-        const rowName = yelpRows[i].name
+      for (let i = 0; i < lookupResults.length; i++) {
+        const outcome = lookupResults[i]
+        const rowName = lookupRows[i].name
 
         if (outcome.status === 'rejected') {
           errors.push(`Could not find "${rowName}"`)
@@ -218,7 +218,7 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
         {panel === 'preview' && (
           <PreviewPanel
             matchedRows={matchedRows}
-            yelpRows={yelpRows}
+            lookupRows={lookupRows}
             skippedRows={skippedRows}
             actionableCount={actionableCount}
             onBack={() => setPanel('paste')}
@@ -230,8 +230,8 @@ export default function ImportModal({ onClose, onSaveSuccess }: Props) {
           <SpinnerPanel
             title="Importing…"
             message={
-              yelpRows.length > 0
-                ? `Searching Yelp for ${yelpRows.length} restaurant${yelpRows.length !== 1 ? 's' : ''}…`
+              lookupRows.length > 0
+                ? `Looking up ${lookupRows.length} restaurant${lookupRows.length !== 1 ? 's' : ''}…`
                 : 'Saving restaurants…'
             }
           />
@@ -348,7 +348,7 @@ function SpinnerPanel({ title, message }: { title: string; message: string }) {
 
 type PreviewPanelProps = {
   matchedRows: MatchedRow[]
-  yelpRows: YelpRow[]
+  lookupRows: LookupRow[]
   skippedRows: SkippedRow[]
   actionableCount: number
   onBack: () => void
@@ -358,7 +358,7 @@ type PreviewPanelProps = {
 
 function PreviewPanel({
   matchedRows,
-  yelpRows,
+  lookupRows,
   skippedRows,
   actionableCount,
   onBack,
@@ -385,9 +385,9 @@ function PreviewPanel({
           </BucketSection>
         )}
 
-        {yelpRows.length > 0 && (
-          <BucketSection icon="🔍" title={`Will search Yelp (${yelpRows.length})`} titleColor="#D97706">
-            {yelpRows.map((row, i) => (
+        {lookupRows.length > 0 && (
+          <BucketSection icon="🔍" title={`Will look up (${lookupRows.length})`} titleColor="#D97706">
+            {lookupRows.map((row, i) => (
               <BucketRow key={row.name} isFirst={i === 0}>
                 <span style={{ fontWeight: 600, fontSize: 14, color: '#1C1917' }}>{row.name}</span>
               </BucketRow>

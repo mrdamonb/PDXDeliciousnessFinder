@@ -5,6 +5,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Portland metro bias for Google Places text search.
+const PORTLAND_LAT = 45.5152;
+const PORTLAND_LNG = -122.6784;
+const PORTLAND_RADIUS_M = 25000;
+
 interface RequestBody {
   name?: string;
   url?: string;
@@ -20,6 +25,17 @@ interface EnrichedPlace {
   cuisine?: string | null;
   venueType?: "restaurant" | "bar" | "brewery" | "foodCart" | null;
   priceRange?: "$" | "$$" | "$$$" | "$$$$" | null;
+}
+
+interface GooglePlace {
+  displayName?: { text?: string };
+  formattedAddress?: string;
+  location?: { latitude?: number; longitude?: number };
+  websiteUri?: string;
+  types?: string[];
+  primaryType?: string;
+  primaryTypeDisplayName?: { text?: string };
+  priceLevel?: string;
 }
 
 function isYelpUrl(url: string): boolean {
@@ -128,57 +144,90 @@ async function buildSearchTerm(body: RequestBody): Promise<string | null> {
   return null;
 }
 
-function mapYelpCategoriesToVenueType(
-  categories: Array<{ alias: string; title: string }>
+function mapGoogleTypesToVenueType(
+  types: string[],
+  primaryType: string | undefined,
 ): "restaurant" | "bar" | "brewery" | "foodCart" {
-  for (const cat of categories) {
-    const alias = cat.alias.toLowerCase();
-    const title = cat.title.toLowerCase();
-    if (alias.includes("brewery") || alias.includes("brewpub") || title.includes("brewery") || title.includes("brewpub")) return "brewery";
-    if (alias === "bars" || alias.includes("pub") || title.includes("bar") || title.includes("pub")) return "bar";
-    if (alias.includes("foodtrucks") || alias.includes("food_court") || alias.includes("foodstands") || title.includes("food truck") || title.includes("food cart")) return "foodCart";
-  }
+  const all = new Set<string>(types.map((t) => t.toLowerCase()));
+  if (primaryType) all.add(primaryType.toLowerCase());
+
+  if (all.has("brewery") || all.has("microbrewery")) return "brewery";
+  if (all.has("bar") || all.has("pub") || all.has("wine_bar") || all.has("cocktail_bar") || all.has("night_club")) return "bar";
+  if (all.has("food_truck") || all.has("food_court")) return "foodCart";
   return "restaurant";
 }
 
-const genericAliases = new Set(["restaurants", "bars", "breweries", "food", "foodtrucks", "nightlife", "foodcourt"]);
-
-function extractCuisine(categories: Array<{ alias: string; title: string }>): string | null {
-  const nonGeneric = categories.find(c => !genericAliases.has(c.alias.toLowerCase()));
-  return nonGeneric?.title ?? null;
+function mapPriceLevel(level: string | undefined): "$" | "$$" | "$$$" | "$$$$" | null {
+  switch (level) {
+    case "PRICE_LEVEL_INEXPENSIVE": return "$";
+    case "PRICE_LEVEL_MODERATE": return "$$";
+    case "PRICE_LEVEL_EXPENSIVE": return "$$$";
+    case "PRICE_LEVEL_VERY_EXPENSIVE": return "$$$$";
+    default: return null;
+  }
 }
 
-async function enrichWithYelp(term: string, apiKey: string): Promise<EnrichedPlace> {
-  const url = `https://api.yelp.com/v3/businesses/search?term=${encodeURIComponent(term)}&location=Portland%2C+OR&limit=1`;
-  const resp = await fetch(url, {
+const genericTypes = new Set([
+  "restaurant", "bar", "food", "point_of_interest", "establishment",
+  "meal_takeaway", "meal_delivery", "store", "food_court", "food_truck",
+]);
+
+function extractCuisine(place: GooglePlace): string | null {
+  const display = place.primaryTypeDisplayName?.text;
+  if (display && display.length > 0) {
+    return display
+      .replace(/\s+(Restaurant|Bar|Cafe|Café|Brewery)$/i, "")
+      .trim() || null;
+  }
+
+  const types = place.types ?? [];
+  const specific = types.find((t) => !genericTypes.has(t.toLowerCase()));
+  if (!specific) return null;
+  return specific
+    .replace(/_restaurant$/i, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+async function enrichWithGooglePlaces(term: string, apiKey: string): Promise<EnrichedPlace> {
+  const resp = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask":
+        "places.displayName,places.formattedAddress,places.location,places.websiteUri,places.types,places.primaryType,places.primaryTypeDisplayName,places.priceLevel",
     },
+    body: JSON.stringify({
+      textQuery: term,
+      locationBias: {
+        circle: {
+          center: { latitude: PORTLAND_LAT, longitude: PORTLAND_LNG },
+          radius: PORTLAND_RADIUS_M,
+        },
+      },
+      pageSize: 1,
+    }),
   });
 
   const text = await resp.text();
-  console.log("[enrich-restaurant] Yelp status:", resp.status, "body:", text.slice(0, 300));
-  if (!resp.ok) throw new Error(`Yelp HTTP ${resp.status}: ${text}`);
+  console.log("[enrich-restaurant] Google status:", resp.status, "body:", text.slice(0, 300));
+  if (!resp.ok) throw new Error(`Google Places HTTP ${resp.status}: ${text}`);
 
   const json = JSON.parse(text);
-  const b = json?.businesses?.[0];
-  if (!b) return {};
+  const p: GooglePlace | undefined = json?.places?.[0];
+  if (!p) return {};
 
-  const categories = (b.categories as Array<{ alias: string; title: string }>) ?? [];
-  const location = b.location as Record<string, unknown> | undefined;
-  const coords = b.coordinates as { latitude?: number; longitude?: number } | undefined;
-  const addressParts = location?.display_address as string[] | undefined;
-
+  const types = p.types ?? [];
   return {
-    name: (b.name as string) ?? null,
-    address: addressParts?.join(", ") ?? null,
-    latitude: coords?.latitude ?? null,
-    longitude: coords?.longitude ?? null,
-    website: (b.url as string) ?? null,
-    venueType: mapYelpCategoriesToVenueType(categories),
-    cuisine: extractCuisine(categories),
-    priceRange: (b.price as "$" | "$$" | "$$$" | "$$$$") ?? null,
+    name: p.displayName?.text ?? null,
+    address: p.formattedAddress ?? null,
+    latitude: p.location?.latitude ?? null,
+    longitude: p.location?.longitude ?? null,
+    website: p.websiteUri ?? null,
+    venueType: mapGoogleTypesToVenueType(types, p.primaryType),
+    cuisine: extractCuisine(p),
+    priceRange: mapPriceLevel(p.priceLevel),
   };
 }
 
@@ -205,19 +254,19 @@ serve(async (req: Request) => {
       );
     }
 
-    const yelpKey = Deno.env.get("YELP_API_KEY");
-    if (!yelpKey) {
+    const googleKey = Deno.env.get("GOOGLE_PLACES_API_KEY");
+    if (!googleKey) {
       return new Response(
-        JSON.stringify({ success: false, error: "YELP_API_KEY not configured" }),
+        JSON.stringify({ success: false, error: "GOOGLE_PLACES_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     let enriched: EnrichedPlace;
     try {
-      enriched = await enrichWithYelp(term, yelpKey);
+      enriched = await enrichWithGooglePlaces(term, googleKey);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Yelp enrichment error";
+      const message = err instanceof Error ? err.message : "Google Places enrichment error";
       return new Response(
         JSON.stringify({ success: false, error: message }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -10,8 +10,8 @@ export type MatchedRow = {
   longitude: number
 }
 
-export type YelpRow = {
-  bucket: 'yelp'
+export type LookupRow = {
+  bucket: 'lookup'
   name: string
 }
 
@@ -20,7 +20,7 @@ export type SkippedRow = {
   name: string
 }
 
-export type PreviewRow = MatchedRow | YelpRow | SkippedRow
+export type PreviewRow = MatchedRow | LookupRow | SkippedRow
 
 export function venueTypeToDB(v: 'restaurant' | 'bar' | 'brewery' | 'foodCart' | null): string | null {
   if (v === 'foodCart') return 'food_cart'
