@@ -533,6 +533,114 @@ So that I can keep my list clean when a place closes or I no longer want it.
 
 ---
 
+### Story 2.7: History Tab — Visit Journal
+
+As a Portland food enthusiast,
+I want a History tab showing all my visits in reverse-chronological order grouped by month,
+So that I can see where I have eaten recently without hunting through individual restaurant cards.
+
+**Acceptance Criteria:**
+
+**Given** I open the app
+**When** I look at the tab bar
+**Then** I see three tabs — Map, List, History — History using the `fork.knife` SF Symbol
+
+**Given** I tap the History tab
+**When** my visit log has entries
+**Then** entries appear grouped under month/year headers, most recent month and entry first
+
+**Given** a visit row
+**When** I look at it
+**Then** I see restaurant name, neighborhood subtitle, human-readable date, venue-type icon, a red star if the restaurant is a favorite, and a one-line note snippet when a note exists
+
+**Given** I tap any row
+**When** the tap registers
+**Then** I am pushed to `RestaurantDetailView` for that restaurant
+
+**Given** I have never logged a visit
+**When** the tab loads
+**Then** I see a warm empty state, not a blank screen
+
+*Covers: FR17, FR18, FR19*
+
+**Status note:** Built and in use; committed 2026-09-01 in `67f73c6` after having been untracked. Recorded here retroactively — it was implemented from `story-2.7-history-tab.md` and never added to this file.
+
+---
+
+### Story 2.8: Add a Visit from History
+
+As a Portland food enthusiast,
+I want to log a visit directly from the History tab,
+So that recording where I ate does not require finding the restaurant on another screen first.
+
+**Acceptance Criteria:**
+
+**Given** I am on the History tab
+**When** I tap the `+` button
+**Then** I get a searchable picker of my own restaurants — **not** the Add Restaurant form, which is what it opens today
+
+**Given** the restaurant picker is open
+**When** I type into its search field
+**Then** the list narrows using the same matching rules as Story 3.5
+
+**Given** I select a restaurant from the picker
+**When** the selection registers
+**Then** `AddVisitView` opens for that restaurant with today's date pre-filled
+
+**Given** I save the visit
+**When** the sheet dismisses
+**Then** the new entry is visible in the History list immediately, without backgrounding and reopening the app
+
+**Given** the restaurant I picked has status `want_to_go`
+**When** the visit saves
+**Then** its status becomes `been_there`, matching what the web app already does in `logVisit`
+
+**Given** I have no restaurants at all
+**When** I tap `+`
+**Then** the picker shows an empty state offering to add a restaurant, not a dead blank list
+
+*Covers: FR17, FR18*
+**Depends on:** Story 3.5 — the picker reuses that search.
+
+---
+
+### Story 2.9: Menu at the Point of Logging
+
+As a Portland food enthusiast,
+I want the restaurant's menu reachable from inside the Add Visit sheet,
+So that I can check what a dish was called without abandoning the note I am part-way through typing.
+
+**Context:** The website is already stored and already displayed on the detail view. The problem is placement only — while logging, that link sits on the screen *underneath* the sheet, so using it means dismissing, leaving for Safari, coming back, and starting the visit over.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Add Visit sheet for a restaurant with a menu URL or a website
+**When** I look at the sheet
+**Then** I see a single "View menu" action — never two competing links
+
+**Given** I tap "View menu"
+**When** the browser opens
+**Then** it opens **in-app, layered over the sheet**, and on dismissal my part-typed note and chosen date are exactly as I left them
+
+**Given** a restaurant has a `menu_url` saved
+**When** I tap "View menu"
+**Then** it opens the menu URL; **otherwise** it falls back to `website`
+
+**Given** a restaurant has neither
+**When** the sheet renders
+**Then** the action is hidden entirely — no disabled control, no dead tap
+
+**Given** I am editing a restaurant
+**When** I look at the form
+**Then** there is a Menu URL field beside Website that I paste into once and never revisit
+
+**Given** I save a menu URL on one device
+**When** sync completes
+**Then** it appears on my other devices and in the web app
+
+*Covers: FR17, FR20*
+**Schema:** adds `menu_url text` to `restaurants`. Independent of 3.5 and 2.8 — shippable on its own.
+
 ## Epic 3: Find What to Eat Tonight
 
 Users can open a Portland map and see all their restaurants as color-coded, venue-typed pins, filter by status / neighborhood / cuisine / price in one motion, switch to a list view with the same filters, and tap any pin or row to open a restaurant card. This is the 30-second sidewalk decision moment.
@@ -670,6 +778,47 @@ So that I can filter by neighborhood without manually entering it.
 *Technical note: Neighborhood detection should use a local GeoJSON polygon lookup shipped in the app bundle — Portland neighborhoods have well-defined boundaries. This approach works offline, has zero latency, and requires no network call. Do not use CLGeocoder or a server-side call for this.*
 
 ---
+
+### Story 3.5: Search Your Restaurants
+
+As a Portland food enthusiast,
+I want to type a few letters and find a place in my own list,
+So that I can reach a restaurant directly instead of scrolling or assembling filters to get to it.
+
+**Context:** Neither surface has free-text search. The only search that exists is `search-places`, which searches Google for a restaurant to **add** — not the list you already own. Both list views offer faceted filters and nothing else.
+
+**Acceptance Criteria:**
+
+**Given** I am on the List tab
+**When** I reach for search
+**Then** a search field is available without displacing the filter bar
+
+**Given** I type into search
+**When** each character lands
+**Then** the list narrows live against restaurant **name**, **cuisine**, and **neighborhood**, case- and diacritic-insensitive, matching any substring rather than prefix only
+
+**Given** I have filters active and then type a search term
+**When** both are set
+**Then** results satisfy **both** — search narrows within the filtered set, it does not replace or clear the filters
+
+**Given** my search matches nothing
+**When** the list is empty
+**Then** the empty state names the search term as the cause and offers to clear it, distinguishable from the existing "no restaurants match your filters" state
+
+**Given** I clear the search field
+**When** it empties
+**Then** the list returns to the filtered set with my filters still intact
+
+**Given** I am on the History tab
+**When** I search
+**Then** matching runs over restaurant name **and the visit note text**, so I can find a visit by something I wrote about it
+
+**Given** I leave a tab and return
+**When** the view reappears
+**Then** the search field is empty — search must not persist as a hidden filter that silently hides data later
+
+*Covers: FR22, FR26*
+**Blocks:** Story 2.8 and the web parity spec both reuse this.
 
 ## Epic 4: Add Restaurants Instantly
 

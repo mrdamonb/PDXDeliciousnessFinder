@@ -177,11 +177,45 @@ Stories were executed in order using `[DS] Dev Story` in fresh context where pos
 | 3.3 List View with Filters | ✅ Complete (2026-04-15) |
 | 3.4 Neighborhood Detection | ✅ Complete (2026-04-15) |
 | 4.1 Share Extension & Schema.org Enrichment | ✅ Complete (2026-04-15) |
-| 4.2 Places API Fallback via Edge Function | ✅ Complete |
+| 4.2 Places API Fallback via Edge Function | ✅ Complete (Google Places, commit `ca7df26`) |
 | 4.3 Search-to-Add Within the App | ✅ Complete |
-| 2.7 History Tab — Visit Journal | 🔲 Backlog |
+| 2.7 History Tab — Visit Journal | ✅ Complete (commit `67f73c6`) |
 
-Epic 5 (Social Layer) is tentatively Sprint 3.
+**Sprint 2 closed 2026-09-01.** Epic 4 is done. Both 4.2/4.3 and 2.7 had shipped and were in daily use, but were never committed — 2.7's source files were untracked entirely. Recorded and committed 2026-09-01.
+
+---
+
+## Sprint 3 — Logging & Findability
+
+**Theme:** make logging where you have been fast enough that it actually happens, and make your own list reachable by typing.
+
+Ordered by dependency, not by the order the ideas arrived.
+
+| # | Story | Surface | Status | Notes |
+|---|---|---|---|---|
+| 1 | **2.9 Menu at the Point of Logging** | iOS + web | 🔲 Ready for dev | Independent of everything else. Gated only on the `menu_url` column. Ship first for a same-day win. |
+| 2 | **3.5 Search Your Restaurants** | iOS | 🔲 Ready for dev | **The spine.** 2.8 and the whole web parity spec reuse it. |
+| 3 | **2.8 Add a Visit from History** | iOS | 🔲 Backlog | Blocked on 3.5 — the picker *is* the search. |
+| 4 | **S6 Web Parity** | web | 🔲 Spec in `spec-wip.md` | History view, search, menu button, add-visit-from-history. Follows the iOS work so the shape is settled once. |
+
+### Schema change — one manual step, gates story 2.9
+
+There is **no local migrations directory**; schema lives in the remote Supabase project. Before 2.9 starts:
+
+```sql
+alter table restaurants add column menu_url text;
+```
+
+Then the Swift side needs it in **four** places, all located 2026-09-01:
+`Core/Storage/Models/Restaurant.swift`, `Core/Network/DTOs/RestaurantDTO.swift` (with explicit `CodingKeys` per ARCH-11), `Core/Storage/Repositories/RestaurantRepository.swift:111`, and `Core/Sync/RealtimeSubscriptions.swift:205`. Missing the last two is the likely bug: the column would save but never come back down on sync.
+
+### Known divergence to resolve in Sprint 3
+
+**Logging a visit auto-promotes status on web but not on iOS.** `actions.ts logVisit` flips `want_to_go` → `been_there` unconditionally; iOS `AddVisitView` only does it when `markVisited: true` is passed. Story 2.8 adopts the web behavior. Worth deciding whether existing iOS Add Visit should match — it is a one-line change and the current split is almost certainly unintentional.
+
+### Open question carried into the sprint
+
+**How many restaurants actually have `website` populated?** Story 2.9's payoff scales directly with this, and rows added by hand or before the Places migration may be null. Unverified as of 2026-09-01 — needs a look at the data, not an assumption.
 
 ---
 

@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-04-15  # reconciled epics 3; 4-1 story created; 4-1 sprint-status synced to review
+last_updated: 2026-09-01  # epic 4 closed (4-2, 4-3 shipped); 2.7 recorded as done; 2.8, 2.9, 3.5 added for Sprint 3
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -47,28 +47,32 @@ development_status:
   epic-1-retrospective: optional
 
   # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────
-  epic-2: done
+  epic-2: in-progress
   2-1-add-a-restaurant-manually: done
   2-2-view-your-restaurant-list: done
   2-3-edit-a-restaurants-details: done
   2-4-set-restaurant-status: done
   2-5-log-visits-and-notes: done
   2-6-delete-a-restaurant: done
+  2-7-history-tab-visit-journal: done          # shipped; was untracked until commit 67f73c6 (2026-09-01)
+  2-8-add-a-visit-from-history: backlog        # Sprint 3 — blocked on 3-5
+  2-9-menu-at-the-point-of-logging: ready-for-dev  # Sprint 3 — independent; gated on the menu_url column
   epic-2-retrospective: optional
 
   # ─── Epic 3: Find What to Eat Tonight ───────────────────────────────────────
-  epic-3: done
+  epic-3: in-progress
   3-1-portland-map-with-restaurant-pins: done
   3-2-filter-the-map: done
   3-3-restaurant-list-view-with-filters: done
   3-4-neighborhood-detection: done
+  3-5-search-your-restaurants: ready-for-dev   # Sprint 3 — the spine; 2-8 and web parity both reuse it
   epic-3-retrospective: optional
 
   # ─── Epic 4: Add Restaurants Instantly ──────────────────────────────────────
-  epic-4: in-progress
+  epic-4: done
   4-1-share-extension-and-schemaorg-enrichment: done
-  4-2-places-api-fallback-via-edge-function: backlog
-  4-3-search-to-add-within-the-app: backlog
+  4-2-places-api-fallback-via-edge-function: done   # Google Places migration, commit ca7df26
+  4-3-search-to-add-within-the-app: done
   epic-4-retrospective: optional
 
   # ─── Epic 5: Your Trusted Circle ────────────────────────────────────────────
