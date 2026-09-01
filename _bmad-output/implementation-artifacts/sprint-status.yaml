@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-09-01  # epic 4 closed (4-2, 4-3 shipped); 2.7 recorded as done; 2.8, 2.9, 3.5 added for Sprint 3
+last_updated: 2026-09-01  # 2.7 recorded as done; 2.8, 2.9, 3.5 added for Sprint 3; 4.4 logged from review (reopens epic 4)
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -69,10 +69,11 @@ development_status:
   epic-3-retrospective: optional
 
   # ─── Epic 4: Add Restaurants Instantly ──────────────────────────────────────
-  epic-4: done
+  epic-4: in-progress
   4-1-share-extension-and-schemaorg-enrichment: done
   4-2-places-api-fallback-via-edge-function: done   # Google Places migration, commit ca7df26
   4-3-search-to-add-within-the-app: done
+  4-4-stop-generic-place-types-becoming-cuisines: backlog  # defect found in review 2026-09-01; not in Sprint 3
   epic-4-retrospective: optional
 
   # ─── Epic 5: Your Trusted Circle ────────────────────────────────────────────

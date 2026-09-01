@@ -209,6 +209,10 @@ alter table restaurants add column menu_url text;
 Then the Swift side needs it in **four** places, all located 2026-09-01:
 `Core/Storage/Models/Restaurant.swift`, `Core/Network/DTOs/RestaurantDTO.swift` (with explicit `CodingKeys` per ARCH-11), `Core/Storage/Repositories/RestaurantRepository.swift:111`, and `Core/Sync/RealtimeSubscriptions.swift:205`. Missing the last two is the likely bug: the column would save but never come back down on sync.
 
+### Logged but not scheduled
+
+**Story 4.4 — Stop Generic Place Types Becoming Cuisines.** Defect found reviewing `ca7df26` on 2026-09-01: `extractCuisine` stores a bare generic display name ("Restaurant", "Bar", "Coffee Shop") verbatim as the cuisine, because the strip regex requires leading whitespace. Those values then appear as options in the cuisine filter on both surfaces. Small fix, deliberately **not** pulled into Sprint 3. Reopens Epic 4.
+
 ### Known divergence to resolve in Sprint 3
 
 **Logging a visit auto-promotes status on web but not on iOS.** `actions.ts logVisit` flips `want_to_go` → `been_there` unconditionally; iOS `AddVisitView` only does it when `markVisited: true` is passed. Story 2.8 adopts the web behavior. Worth deciding whether existing iOS Add Visit should match — it is a one-line change and the current split is almost certainly unintentional.

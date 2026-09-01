@@ -929,6 +929,51 @@ So that I have a fallback when I don't have a URL to share.
 
 ---
 
+### Story 4.4: Stop Generic Place Types Becoming Cuisines
+
+As a Portland food enthusiast,
+I want the cuisine filter to contain actual cuisines,
+So that filtering by cuisine narrows my list instead of offering me "Restaurant" as a choice.
+
+**Context:** Found during review 2026-09-01 of the Google Places migration (`ca7df26`). `extractCuisine` strips a trailing venue word only when preceded by whitespace, so a **bare** generic display name is stored verbatim as the cuisine. The same function is duplicated in both `search-places` and `enrich-restaurant`.
+
+Verified behavior:
+
+| `primaryTypeDisplayName` | Stored cuisine | |
+|---|---|---|
+| `Thai Restaurant` | `Thai` | correct |
+| `Mexican Restaurant` | `Mexican` | correct |
+| `Restaurant` | `Restaurant` | **wrong** |
+| `Bar` | `Bar` | **wrong** |
+| `Brewery` | `Brewery` | **wrong** |
+| `Coffee Shop` | `Coffee Shop` | **wrong** — a venue kind, not a cuisine |
+| `Wine Bar` | `Wine` | **wrong** — venue type already carries "bar" |
+
+The intent is already in the file: the *fallback* path filters candidates through a `genericTypes` set precisely so generics never become cuisines. The primary path simply never applies that intent.
+
+**Acceptance Criteria:**
+
+**Given** Google returns a display name that is only a venue category
+**When** the place is enriched
+**Then** `cuisine` is `null` — not the category string
+
+**Given** Google returns a cuisine-qualified display name such as "Thai Restaurant"
+**When** the place is enriched
+**Then** `cuisine` is "Thai", exactly as today — this story must not regress the working case
+
+**Given** a place already saved with a generic cuisine value
+**When** I open the cuisine filter
+**Then** I do not see "Restaurant", "Bar", "Brewery", "Cafe" or "Coffee Shop" offered as cuisines
+
+**Given** the two Edge Functions
+**When** the fix lands
+**Then** the rule lives in **one** place rather than being patched twice and drifting
+
+*Covers: FR12*
+**Effort:** Small. Not scheduled into Sprint 3.
+
+---
+
 ## Epic 5: Your Trusted Circle
 
 Users can invite friends, browse a friend's restaurant list in a dedicated Friends tab, toggle sync so a friend's new additions flow into their own map with attribution badges, manage the two-tier connection/sync relationship, and receive notifications about friend activity.
