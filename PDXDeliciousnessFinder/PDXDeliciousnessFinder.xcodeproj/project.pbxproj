@@ -78,6 +78,8 @@
 				Core/Sync/RealtimeSubscriptions.swift,
 				Core/Sync/SyncQueue.swift,
 				Core/ViewState.swift,
+				Features/History/HistoryView.swift,
+				Features/History/HistoryViewModel.swift,
 				Features/Home/HomeView.swift,
 				Features/Map/MapView.swift,
 				Features/Map/MapViewModel.swift,

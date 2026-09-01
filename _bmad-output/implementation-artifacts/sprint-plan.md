@@ -177,8 +177,9 @@ Stories were executed in order using `[DS] Dev Story` in fresh context where pos
 | 3.3 List View with Filters | ✅ Complete (2026-04-15) |
 | 3.4 Neighborhood Detection | ✅ Complete (2026-04-15) |
 | 4.1 Share Extension & Schema.org Enrichment | ✅ Complete (2026-04-15) |
-| 4.2 Places API Fallback via Edge Function | 🔧 Needs fix (Foursquare + Yelp redirect) |
-| 4.3 Search-to-Add Within the App | 🔲 Backlog |
+| 4.2 Places API Fallback via Edge Function | ✅ Complete |
+| 4.3 Search-to-Add Within the App | ✅ Complete |
+| 2.7 History Tab — Visit Journal | 🔲 Backlog |
 
 Epic 5 (Social Layer) is tentatively Sprint 3.
 

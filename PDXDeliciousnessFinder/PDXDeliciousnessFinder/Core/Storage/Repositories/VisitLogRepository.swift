@@ -25,6 +25,13 @@ final class VisitLogRepository: VisitLogRepositoryProtocol {
         return try modelContext.fetch(descriptor)
     }
 
+    func fetchAllVisits() throws -> [VisitLog] {
+        let descriptor = FetchDescriptor<VisitLog>(
+            sortBy: [SortDescriptor(\.visitedAt, order: .reverse)]
+        )
+        return try modelContext.fetch(descriptor)
+    }
+
     func fetch(id: UUID) throws -> VisitLog? {
         let descriptor = FetchDescriptor<VisitLog>(
             predicate: #Predicate { $0.id == id }

@@ -5,6 +5,7 @@ import Auth
 ///
 /// Tab 0 (default): Map — full-screen Portland map with restaurant pins.
 /// Tab 1: List — the filterable restaurant list.
+/// Tab 2: History — reverse-chronological visit journal grouped by month.
 ///
 /// The Sign Out action lives on the List tab toolbar so it remains accessible
 /// without cluttering the full-bleed map chrome.
@@ -31,6 +32,10 @@ struct HomeView: View {
                 }
                 .tabItem { Label("List", systemImage: "list.bullet") }
                 .tag(1)
+
+                HistoryView()
+                    .tabItem { Label("History", systemImage: "fork.knife") }
+                    .tag(2)
             }
         }
     }
