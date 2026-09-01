@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S3 Filter UX — Option A vs C</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F7F3EE;
+    --surface:   #FFFFFF;
+    --text1:     #1C1917;
+    --text2:     #6B6560;
+    --border:    #EDE8E3;
+    --accent:    #C2410C;
+    --want:      #F59E0B;
+    --been:      #16A34A;
+    --fav:       #DC2626;
+    --header-h:  52px;
+    --filter-h:  44px;
+    --peek-h:    180px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #E8E3DC;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text1);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 28px;
+  }
+
+  /* ── Layout ─────────────────────────────── */
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(28,25,23,.12);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-label {
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .card-label h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text1);
+    margin-bottom: 2px;
+  }
+  .card-label p {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  /* ── Phone shell ─────────────────────────── */
+  .phone {
+    position: relative;
+    height: 620px;
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Shared header ───────────────────────── */
+  .header {
+    position: relative;
+    z-index: 30;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(247,243,238,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(237,232,227,.8);
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .map-list-toggle {
+    display: flex;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .toggle-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .toggle-btn.active {
+    background: var(--surface);
+    color: var(--text1);
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    border-radius: 6px;
+    margin: 2px;
+  }
+  .avatar-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  /* Avatar dropdown (shown on hover for mockup) */
+  .avatar-dropdown {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 0;
+    width: 160px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    display: none;
+    z-index: 100;
+    font-size: 13px;
+  }
+  .avatar-btn:focus .avatar-dropdown,
+  .avatar-btn:hover .avatar-dropdown { display: block; }
+  .avatar-dropdown-item {
+    padding: 7px 14px;
+    color: var(--text1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .avatar-dropdown-item:hover { background: var(--bg); }
+  .avatar-dropdown-item.destructive { color: var(--fav); }
+  .dropdown-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+  .dropdown-email {
+    padding: 6px 14px 4px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  /* ── Map canvas ──────────────────────────── */
+  .map-canvas {
+    flex: 1;
+    position: relative;
+    background: #E8E3D8;
+    overflow: hidden;
+  }
+  .map-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(200,192,180,.3) 39px, rgba(200,192,180,.3) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(200,192,180,.3) 39px, rgba(200,192,180,.3) 40px);
+    background-color: #DDD8CF;
+  }
+  /* Fake road network */
+  .road { position: absolute; background: rgba(255,255,255,.5); border-radius: 2px; }
+  .road.h { height: 6px; left: 0; right: 0; }
+  .road.v { width: 6px; top: 0; bottom: 0; }
+  .road.h1 { top: 28%; }
+  .road.h2 { top: 52%; }
+  .road.h3 { top: 74%; }
+  .road.v1 { left: 22%; }
+  .road.v2 { left: 48%; }
+  .road.v3 { left: 72%; }
+
+  /* Pins */
+  .pin-cluster {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+  .pin {
+    position: absolute;
+    width: 28px;
+    height: 34px;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    transition: transform .15s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));
+  }
+  .pin:hover { transform: translate(-50%, -100%) scale(1.15); }
+  .pin svg { width: 100%; height: 100%; }
+
+  /* ── Option A: Filter strip ──────────────── */
+  .filter-strip {
+    height: var(--filter-h);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    background: rgba(247,243,238,.95);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
+  }
+  .filter-strip::-webkit-scrollbar { display: none; }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+    transition: all .15s;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .chip.active.status  { background: var(--want); border-color: var(--want); }
+  .chip.active.been    { background: var(--been); border-color: var(--been); }
+  .chip.active.fav     { background: var(--fav);  border-color: var(--fav);  }
+  .chip.clear {
+    border-color: var(--text2);
+    color: var(--text2);
+    font-size: 11px;
+    padding: 4px 9px;
+  }
+  .chip svg { width: 10px; height: 10px; flex-shrink: 0; }
+
+  /* Expanded pills row (Option A active state) */
+  .filter-strip.expanded {
+    flex-wrap: nowrap;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--accent);
+    flex-shrink: 0;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  /* ── Option C: Floating button ───────────── */
+  .filter-fab {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text1);
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
+    transition: box-shadow .15s, border-color .15s;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .filter-fab:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.16);
+    border-color: var(--accent);
+  }
+  .filter-fab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .filter-fab svg { width: 13px; height: 13px; }
+  .fab-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    margin-left: 2px;
+  }
+  .filter-fab.active .fab-badge {
+    background: rgba(255,255,255,.25);
+    color: white;
+  }
+
+  /* Option C dropdown panel */
+  .filter-popover {
+    position: absolute;
+    top: 54px;
+    left: 12px;
+    right: 12px;
+    z-index: 40;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.16);
+    overflow: hidden;
+    display: none;
+  }
+  .filter-popover.open { display: block; }
+  .popover-section {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .popover-section:last-child { border-bottom: none; }
+  .popover-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .popover-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .popover-pill {
+    padding: 4px 11px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+  .popover-pill.active { background: var(--accent); color: white; }
+  .popover-pill.active.w { background: var(--want); border-color: var(--want); }
+  .popover-pill.active.b { background: var(--been); border-color: var(--been); }
+  .popover-pill.active.f { background: var(--fav);  border-color: var(--fav);  }
+  .popover-footer {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+  }
+  .popover-clear {
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  .popover-close {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+
+  /* ── Bottom panel ────────────────────────── */
+  .panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 25;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.1);
+    transition: height .3s cubic-bezier(.4,0,.2,1);
+  }
+  .panel.peek { height: var(--peek-h); }
+  .panel.expanded { height: 60%; }
+
+  .panel-handle-row {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 6px;
+  }
+  .panel-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .panel-pill-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 16px 10px;
+    color: var(--text2);
+    font-size: 12px;
+  }
+  .panel-pill-row .count-dot {
+    width: 6px; height: 6px;
+    border-radius: 3px;
+    background: var(--want);
+    display: inline-block;
+  }
+
+  .panel-detail {
+    padding: 0 16px;
+    overflow: hidden;
+  }
+  .panel-restaurant-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text1);
+    margin-bottom: 4px;
+  }
+  .panel-meta {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .status-badge.want { background: rgba(245,158,11,.12); color: #92400E; }
+  .status-badge.been { background: rgba(22,163,74,.12); color: #14532D; }
+  .status-badge .dot { width: 6px; height: 6px; border-radius: 3px; }
+  .status-badge.want .dot { background: var(--want); }
+  .status-badge.been .dot { background: var(--been); }
+
+  .panel-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .panel-btn {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+  }
+  .panel-btn.primary { background: var(--accent); color: white; }
+  .panel-btn.secondary {
+    background: var(--bg);
+    color: var(--text1);
+    border: 1px solid var(--border);
+  }
+
+  /* Active filter summary in panel peek */
+  .panel-filter-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px 10px;
+    flex-wrap: wrap;
+  }
+  .summary-chip {
+    padding: 3px 9px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(194,65,12,.1);
+    color: var(--accent);
+  }
+
+  /* ── Annotations ─────────────────────────── */
+  .annotation {
+    position: absolute;
+    background: rgba(28,25,23,.82);
+    color: #F7F3EE;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 50;
+  }
+  .annotation::before {
+    content: '';
+    position: absolute;
+    border: 4px solid transparent;
+  }
+  .annotation.below::before {
+    top: -8px; left: 50%; transform: translateX(-50%);
+    border-bottom-color: rgba(28,25,23,.82);
+  }
+  .annotation.above::before {
+    bottom: -8px; left: 50%; transform: translateX(-50%);
+    border-top-color: rgba(28,25,23,.82);
+  }
+
+  /* ── Trade-off notes ─────────────────────── */
+  .notes {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .notes h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .note-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .note-icon { flex-shrink: 0; }
+  .note-text { color: var(--text1); }
+
+  /* ── Interactive toggle ──────────────────── */
+  .interaction-hint {
+    padding: 8px 20px 10px;
+    font-size: 11px;
+    color: var(--text2);
+    text-align: center;
+    font-style: italic;
+  }
+
+  /* ── A/B selector header ─────────────────── */
+  .compare-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    max-width: 960px;
+    margin: 0 auto 10px;
+  }
+  .option-tag {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text1);
+    letter-spacing: .02em;
+    padding: 6px 0;
+  }
+  .option-tag span {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-right: 6px;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<h1>S3 Filter UX Exploration</h1>
+<p class="subtitle">PDX Deliciousness Finder · Web · Interactive mockups — click the chips/buttons to try the interactions</p>
+
+<div class="compare-header">
+  <div class="option-tag"><span>A</span> Filter bar below header</div>
+  <div class="option-tag"><span>C</span> Floating filter button</div>
+</div>
+
+<div class="row">
+
+  <!-- ═══════════════ OPTION A ═══════════════ -->
+  <div class="card">
+    <div class="card-label">
+      <h2>Option A — Persistent filter strip</h2>
+      <p>Always-visible pill bar sits between the header and the map. Active filters show inline. Two-level: category chips drill into individual pills.</p>
+    </div>
+
+    <div class="phone" id="phone-a">
+      <!-- Header -->
+      <div class="header">
+        <span class="header-title">PDX Deliciousness Finder</span>
+        <div class="header-right">
+          <div class="map-list-toggle">
+            <button class="toggle-btn active">
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="8" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="8" width="5" height="5" rx="1" fill="currentColor"/></svg>
+              Map
+            </button>
+            <button class="toggle-btn">
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="6" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="10" width="12" height="2" rx="1" fill="currentColor"/></svg>
+              List
+            </button>
+          </div>
+          <div class="avatar-btn" tabindex="0">D
+            <div class="avatar-dropdown">
+              <div class="dropdown-email">damon@paperdogvideo.com</div>
+              <div class="dropdown-divider"></div>
+              <div class="avatar-dropdown-item">⚙️ Settings</div>
+              <div class="avatar-dropdown-item destructive">Sign out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter strip (Option A) -->
+      <div class="filter-strip" id="strip-a">
+        <!-- Category mode chips -->
+        <div id="strip-a-categories">
+          <button class="chip" id="chip-a-status" onclick="toggleChipA('status')">
+            Status
+            <svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <button class="chip" id="chip-a-venue" onclick="toggleChipA('venue')" style="margin-left:6px">
+            Venue
+            <svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <button class="chip" id="chip-a-nbhd" onclick="toggleChipA('nbhd')" style="margin-left:6px">
+            Neighborhood
+            <svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <button class="chip" id="chip-a-price" onclick="toggleChipA('price')" style="margin-left:6px">
+            Price
+            <svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status expanded pills (hidden by default) -->
+      <div class="filter-strip" id="strip-a-pills" style="display:none;">
+        <button class="back-btn" onclick="collapseA()">←</button>
+        <button class="chip" id="pa-want" onclick="togglePillA('want')" style="margin-left:4px">Want to Go</button>
+        <button class="chip" id="pa-been" onclick="togglePillA('been')" style="margin-left:6px">Been There</button>
+        <button class="chip" id="pa-fav"  onclick="togglePillA('fav')"  style="margin-left:6px">Favorite</button>
+      </div>
+
+      <!-- Map canvas -->
+      <div class="map-canvas">
+        <div class="map-bg"></div>
+        <div class="road h h1"></div>
+        <div class="road h h2"></div>
+        <div class="road h h3"></div>
+        <div class="road v v1"></div>
+        <div class="road v v2"></div>
+        <div class="road v v3"></div>
+
+        <!-- Pins -->
+        <div class="pin" style="left:30%;top:38%">
+          <svg viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#F59E0B" stroke="white" stroke-width="1.5"/>
+            <text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🍴</text>
+          </svg>
+        </div>
+        <div class="pin" style="left:55%;top:26%">
+          <svg viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#16A34A" stroke="white" stroke-width="1.5"/>
+            <text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🍺</text>
+          </svg>
+        </div>
+        <div class="pin" style="left:68%;top:55%">
+          <svg viewBox="0 0 30 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 1C7.82 1 2 6.82 2 14c0 9.5 13 23 13 23S28 23.5 28 14C28 6.82 22.18 1 15 1Z" fill="#DC2626" stroke="white" stroke-width="1.5"/>
+            <text x="15" y="17" text-anchor="middle" font-size="9" fill="white">🍴</text>
+            <text x="15" y="5" text-anchor="middle" font-size="7" fill="#DC2626">★</text>
+          </svg>
+        </div>
+        <div class="pin" style="left:38%;top:62%">
+          <svg viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#F59E0B" stroke="white" stroke-width="1.5"/>
+            <text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🛒</text>
+          </svg>
+        </div>
+        <div class="pin" style="left:75%;top:38%">
+          <svg viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#16A34A" stroke="white" stroke-width="1.5"/>
+            <text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🍴</text>
+          </svg>
+        </div>
+
+        <!-- Option A annotation -->
+        <div class="annotation below" style="bottom: calc(var(--peek-h) + 12px); left: 50%; transform: translateX(-50%)">
+          Map area: reduced by ~44px
+        </div>
+
+      </div><!-- end map-canvas -->
+
+      <!-- Bottom panel -->
+      <div class="panel peek" id="panel-a">
+        <div class="panel-handle-row"><div class="panel-handle"></div></div>
+        <div class="panel-pill-row">
+          <span class="count-dot"></span>
+          <span>12 places saved · tap a pin to explore</span>
+        </div>
+      </div>
+    </div><!-- end phone -->
+
+    <div class="interaction-hint">Click "Status", "Venue" etc. to see two-level drill-in · Hover avatar for dropdown</div>
+    <div class="notes">
+      <h3>Trade-offs</h3>
+      <div class="note-row"><span class="note-icon">✅</span><span class="note-text">Always discoverable — filters are the first thing you see below the header</span></div>
+      <div class="note-row"><span class="note-icon">✅</span><span class="note-text">Honors "never a modal" principle from UX spec — filter state visible at all times</span></div>
+      <div class="note-row"><span class="note-icon">✅</span><span class="note-text">Map/list toggle naturally lives in the header alongside the avatar</span></div>
+      <div class="note-row"><span class="note-icon">⚠️</span><span class="note-text">Map loses ~44px of vertical real estate — meaningful on a 13" laptop, less on a 27" monitor</span></div>
+      <div class="note-row"><span class="note-icon">⚠️</span><span class="note-text">Feels slightly busier when no filters are active (empty chips always visible)</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ OPTION C ═══════════════ -->
+  <div class="card">
+    <div class="card-label">
+      <h2>Option C — Floating filter button</h2>
+      <p>A compact "Filter" pill floats over the top-right of the map. Tap to expand a popover with all filter dimensions. Map stays full-bleed.</p>
+    </div>
+
+    <div class="phone" id="phone-c">
+      <!-- Header (same as A but no filter strip) -->
+      <div class="header">
+        <span class="header-title">PDX Deliciousness Finder</span>
+        <div class="header-right">
+          <div class="map-list-toggle">
+            <button class="toggle-btn active">
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="8" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="8" width="5" height="5" rx="1" fill="currentColor"/></svg>
+              Map
+            </button>
+            <button class="toggle-btn">
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="6" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="10" width="12" height="2" rx="1" fill="currentColor"/></svg>
+              List
+            </button>
+          </div>
+          <div class="avatar-btn" tabindex="0">D
+            <div class="avatar-dropdown">
+              <div class="dropdown-email">damon@paperdogvideo.com</div>
+              <div class="dropdown-divider"></div>
+              <div class="avatar-dropdown-item">⚙️ Settings</div>
+              <div class="avatar-dropdown-item destructive">Sign out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map canvas — full height -->
+      <div class="map-canvas" style="flex:1">
+        <div class="map-bg"></div>
+        <div class="road h h1"></div>
+        <div class="road h h2"></div>
+        <div class="road h h3"></div>
+        <div class="road v v1"></div>
+        <div class="road v v2"></div>
+        <div class="road v v3"></div>
+
+        <!-- Pins -->
+        <div class="pin" style="left:30%;top:38%">
+          <svg viewBox="0 0 28 34" fill="none"><path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#F59E0B" stroke="white" stroke-width="1.5"/><text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🍴</text></svg>
+        </div>
+        <div class="pin" style="left:55%;top:26%">
+          <svg viewBox="0 0 28 34" fill="none"><path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#16A34A" stroke="white" stroke-width="1.5"/><text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🍺</text></svg>
+        </div>
+        <div class="pin" style="left:68%;top:55%">
+          <svg viewBox="0 0 30 38" fill="none"><path d="M15 1C7.82 1 2 6.82 2 14c0 9.5 13 23 13 23S28 23.5 28 14C28 6.82 22.18 1 15 1Z" fill="#DC2626" stroke="white" stroke-width="1.5"/><text x="15" y="17" text-anchor="middle" font-size="9" fill="white">🍴</text><text x="15" y="5" text-anchor="middle" font-size="7" fill="#DC2626">★</text></svg>
+        </div>
+        <div class="pin" style="left:38%;top:62%">
+          <svg viewBox="0 0 28 34" fill="none"><path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#F59E0B" stroke="white" stroke-width="1.5"/><text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🛒</text></svg>
+        </div>
+        <div class="pin" style="left:75%;top:38%">
+          <svg viewBox="0 0 28 34" fill="none"><path d="M14 1C7.373 1 2 6.373 2 13c0 8.5 12 20 12 20S26 21.5 26 13C26 6.373 20.627 1 14 1Z" fill="#16A34A" stroke="white" stroke-width="1.5"/><text x="14" y="16" text-anchor="middle" font-size="9" fill="white">🍴</text></svg>
+        </div>
+
+        <!-- Floating filter button -->
+        <button class="filter-fab" id="fab-c" onclick="toggleFabC()">
+          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="1" y1="3.5" x2="13" y2="3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="5" y1="10.5" x2="9" y2="10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Filter
+          <span class="fab-badge" id="fab-badge" style="display:none">2</span>
+        </button>
+
+        <!-- Filter popover -->
+        <div class="filter-popover" id="popover-c">
+          <div class="popover-section">
+            <div class="popover-label">Status</div>
+            <div class="popover-pills">
+              <div class="popover-pill" id="pp-want" onclick="togglePopoverPill('want')">Want to Go</div>
+              <div class="popover-pill" id="pp-been" onclick="togglePopoverPill('been')">Been There</div>
+              <div class="popover-pill" id="pp-fav"  onclick="togglePopoverPill('fav')">Favorite</div>
+            </div>
+          </div>
+          <div class="popover-section">
+            <div class="popover-label">Venue Type</div>
+            <div class="popover-pills">
+              <div class="popover-pill" id="pp-rest" onclick="togglePopoverPill('rest')">🍴 Restaurant</div>
+              <div class="popover-pill" id="pp-bar"  onclick="togglePopoverPill('bar')">🍺 Bar</div>
+              <div class="popover-pill" id="pp-brew" onclick="togglePopoverPill('brew')">🍺 Brewery</div>
+              <div class="popover-pill" id="pp-cart" onclick="togglePopoverPill('cart')">🛒 Food Cart</div>
+            </div>
+          </div>
+          <div class="popover-section">
+            <div class="popover-label">Neighborhood</div>
+            <div class="popover-pills">
+              <div class="popover-pill" id="pp-div" onclick="togglePopoverPill('div')">Division</div>
+              <div class="popover-pill" id="pp-alb" onclick="togglePopoverPill('alb')">Alberta</div>
+              <div class="popover-pill" id="pp-mis" onclick="togglePopoverPill('mis')">Mississippi</div>
+              <div class="popover-pill" id="pp-prl" onclick="togglePopoverPill('prl')">Pearl</div>
+            </div>
+          </div>
+          <div class="popover-footer">
+            <button class="popover-clear" onclick="clearPopoverFilters()">Clear all</button>
+            <button class="popover-close" onclick="toggleFabC()">Done</button>
+          </div>
+        </div>
+
+        <!-- C annotation -->
+        <div class="annotation above" style="top: calc(var(--peek-h) - 120px); left: 50%; transform: translateX(-50%)">
+          Map stays full-bleed — zero vertical loss
+        </div>
+
+      </div><!-- end map-canvas -->
+
+      <!-- Bottom panel (with active filter summary when filters on) -->
+      <div class="panel peek" id="panel-c">
+        <div class="panel-handle-row"><div class="panel-handle"></div></div>
+        <div class="panel-pill-row" id="panel-c-resting">
+          <span class="count-dot"></span>
+          <span>12 places saved · tap a pin to explore</span>
+        </div>
+        <div class="panel-filter-summary" id="panel-c-filters" style="display:none">
+          <span style="font-size:11px;color:var(--text2)">Filtered:</span>
+          <span class="summary-chip" id="sf-want" style="display:none">Want to Go</span>
+          <span class="summary-chip" id="sf-been" style="display:none">Been There</span>
+          <span class="summary-chip" id="sf-rest" style="display:none">Restaurant</span>
+          <span class="summary-chip" id="sf-bar"  style="display:none">Bar</span>
+          <span class="summary-chip" id="sf-brew" style="display:none">Brewery</span>
+          <span class="summary-chip" id="sf-cart" style="display:none">Food Cart</span>
+          <span class="summary-chip" id="sf-div"  style="display:none">Division</span>
+          <span class="summary-chip" id="sf-alb"  style="display:none">Alberta</span>
+          <span class="summary-chip" id="sf-mis"  style="display:none">Mississippi</span>
+          <span class="summary-chip" id="sf-prl"  style="display:none">Pearl</span>
+        </div>
+      </div>
+
+    </div><!-- end phone -->
+
+    <div class="interaction-hint">Click "Filter" button to open the popover · select pills · "Done" to close</div>
+    <div class="notes">
+      <h3>Trade-offs</h3>
+      <div class="note-row"><span class="note-icon">✅</span><span class="note-text">Map stays fully full-bleed — no vertical real estate lost. Map is the product.</span></div>
+      <div class="note-row"><span class="note-icon">✅</span><span class="note-text">Familiar pattern — Google Maps, Apple Maps, Airbnb all use this. Zero learning curve.</span></div>
+      <div class="note-row"><span class="note-icon">✅</span><span class="note-text">Active filters surfaced in bottom panel resting state — still visible without occupying chrome</span></div>
+      <div class="note-row"><span class="note-icon">⚠️</span><span class="note-text">Filters are one tap further — requires discovering the button first</span></div>
+      <div class="note-row"><span class="note-icon">⚠️</span><span class="note-text">Slightly at odds with UX spec's "never a modal" — the popover is a micro-modal. Borderline.</span></div>
+    </div>
+  </div>
+
+</div><!-- end row -->
+
+<script>
+// ── Option A interactions ──────────────────────
+const stripA       = document.getElementById('strip-a');
+const categoriesA  = document.getElementById('strip-a-categories');
+const pillsA       = document.getElementById('strip-a-pills');
+let activeA = null;
+
+function toggleChipA(dim) {
+  if (activeA === dim) {
+    collapseA();
+    return;
+  }
+  activeA = dim;
+  // Update category chip visual
+  ['status','venue','nbhd','price'].forEach(d => {
+    const el = document.getElementById('chip-a-' + d);
+    if (el) el.classList.remove('active');
+  });
+  const chip = document.getElementById('chip-a-' + dim);
+  if (chip) chip.classList.add('active');
+
+  if (dim === 'status') {
+    categoriesA.style.display = 'none';
+    pillsA.style.display = 'flex';
+  }
+  // Other dimensions keep category view for this demo
+}
+
+function collapseA() {
+  activeA = null;
+  categoriesA.style.display = 'flex';
+  pillsA.style.display = 'none';
+  ['status','venue','nbhd','price'].forEach(d => {
+    const el = document.getElementById('chip-a-' + d);
+    if (el) el.classList.remove('active');
+  });
+}
+
+const pillColors = { want: 'status', been: 'been', fav: 'fav' };
+function togglePillA(pill) {
+  const el = document.getElementById('pa-' + pill);
+  if (!el) return;
+  const wasActive = el.classList.contains('active');
+  el.classList.toggle('active', !wasActive);
+  if (!wasActive) {
+    el.classList.add(pillColors[pill] || '');
+  } else {
+    el.classList.remove(pillColors[pill] || '');
+  }
+}
+
+// ── Option C interactions ──────────────────────
+const popoverC    = document.getElementById('popover-c');
+const fabC        = document.getElementById('fab-c');
+const fabBadge    = document.getElementById('fab-badge');
+let popoverOpen   = false;
+let cActiveFilters = new Set();
+
+function toggleFabC() {
+  popoverOpen = !popoverOpen;
+  popoverC.classList.toggle('open', popoverOpen);
+  fabC.classList.toggle('active', popoverOpen);
+  updateFabBadge();
+  updatePanelSummary();
+}
+
+const pillActiveMap = { want:'w', been:'b', fav:'f' };
+function togglePopoverPill(key) {
+  const el = document.getElementById('pp-' + key);
+  if (!el) return;
+  if (cActiveFilters.has(key)) {
+    cActiveFilters.delete(key);
+    el.classList.remove('active', 'w', 'b', 'f');
+  } else {
+    cActiveFilters.add(key);
+    el.classList.add('active');
+    if (pillActiveMap[key]) el.classList.add(pillActiveMap[key]);
+  }
+  updateFabBadge();
+}
+
+function clearPopoverFilters() {
+  cActiveFilters.forEach(key => {
+    const el = document.getElementById('pp-' + key);
+    if (el) el.classList.remove('active','w','b','f');
+  });
+  cActiveFilters.clear();
+  updateFabBadge();
+  updatePanelSummary();
+}
+
+function updateFabBadge() {
+  const n = cActiveFilters.size;
+  if (n > 0) {
+    fabBadge.style.display = 'inline';
+    fabBadge.textContent = n;
+  } else {
+    fabBadge.style.display = 'none';
+  }
+}
+
+function updatePanelSummary() {
+  if (popoverOpen) return; // update on close
+  const n = cActiveFilters.size;
+  const resting = document.getElementById('panel-c-resting');
+  const filters = document.getElementById('panel-c-filters');
+  const summaryKeys = ['want','been','rest','bar','brew','cart','div','alb','mis','prl'];
+  summaryKeys.forEach(k => {
+    const sf = document.getElementById('sf-' + k);
+    if (sf) sf.style.display = cActiveFilters.has(k) ? 'inline' : 'none';
+  });
+  if (n > 0) {
+    resting.style.display = 'none';
+    filters.style.display = 'flex';
+  } else {
+    resting.style.display = 'flex';
+    filters.style.display = 'none';
+  }
+}
+
+// Override toggleFabC to update panel on close
+const _orig = toggleFabC;
+// (already inlined above — just call updatePanelSummary in toggleFabC on close)
+</script>
+</body>
+</html>
