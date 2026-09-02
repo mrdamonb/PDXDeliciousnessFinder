@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-09-02  # 2.9 and 3.5 both DONE (device-verified); epic 3 closed; 1.5 scope grew (realtime decoder dead for both tables)
+last_updated: 2026-09-02  # 1.5 reviewed: 1 decision, 10 patches applied, build green; pending device verification
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -43,8 +43,8 @@ development_status:
   1-1-app-foundation-and-email-sign-in: done
   1-2-swiftdata-core-storage-layer: done
   1-3-offline-write-queue-outbound-sync: done
-  1-4-realtime-inbound-sync-multi-device: done  # ⚠️ marked done but PROVEN NOT WORKING 2026-09-02 — realtime decoder cannot decode either DTO; fix folded into 1-5
-  1-5-visit-history-survives-reinstall: ready-for-dev  # visits never pulled, never hydrated, AND realtime decode is dead — three defects; do before 2.8
+  1-4-realtime-inbound-sync-multi-device: done  # was silently broken (decoder/CodingKeys clash); repaired by 1-5 on 2026-09-02, pending device verification
+  1-5-visit-history-survives-reinstall: review  # reviewed + patched 2026-09-02, build green; History now @Query-backed; pending device verification
   epic-1-retrospective: optional
 
   # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────
