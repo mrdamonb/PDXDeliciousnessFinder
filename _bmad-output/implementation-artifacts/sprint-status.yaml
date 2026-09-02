@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-09-01  # 3.5 reviewed: 11 patches applied, 5 deferred; awaiting on-device verification
+last_updated: 2026-09-01  # 1.5 logged from 3.5 review (reopens epic 1); 3.5 patched, awaiting on-device verification
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -39,11 +39,12 @@ story_location: "_bmad-output/implementation-artifacts"
 development_status:
 
   # ─── Epic 1: Signed In & Ready ──────────────────────────────────────────────
-  epic-1: done
+  epic-1: in-progress
   1-1-app-foundation-and-email-sign-in: done
   1-2-swiftdata-core-storage-layer: done
   1-3-offline-write-queue-outbound-sync: done
   1-4-realtime-inbound-sync-multi-device: done
+  1-5-visit-history-survives-reinstall: ready-for-dev  # found in 3.5 review; visits are never pulled AND never hydrated — do before 2.8
   epic-1-retrospective: optional
 
   # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────

@@ -195,8 +195,9 @@ Ordered by dependency, not by the order the ideas arrived.
 |---|---|---|---|---|
 | 1 | **2.9 Menu at the Point of Logging** | iOS + web | 🔲 Ready for dev | Independent of everything else. Gated only on the `menu_url` column. Ship first for a same-day win. |
 | 2 | **3.5 Search Your Restaurants** | iOS | 🔲 Ready for dev | **The spine.** 2.8 and the whole web parity spec reuse it. |
-| 3 | **2.8 Add a Visit from History** | iOS | 🔲 Backlog | Blocked on 3.5 — the picker *is* the search. |
-| 4 | **S6 Web Parity** | web | 🔲 Spec in `spec-wip.md` | History view, search, menu button, add-visit-from-history. Follows the iOS work so the shape is settled once. |
+| 3 | **1.5 Visit history survives a reinstall** | iOS | 🔲 Ready for dev | Found in the 3.5 review. Do before 2.8 — History is not trustworthy until this lands. |
+| 4 | **2.8 Add a Visit from History** | iOS | 🔲 Backlog | Blocked on 3.5 (the picker *is* the search) and now on 1.5. |
+| 5 | **S6 Web Parity** | web | 🔲 Spec in `spec-wip.md` | History view, search, menu button, add-visit-from-history. Follows the iOS work so the shape is settled once. |
 
 ### Schema change — one manual step, gates story 2.9
 
@@ -208,6 +209,10 @@ alter table restaurants add column menu_url text;
 
 Then the Swift side needs it in **four** places, all located 2026-09-01:
 `Core/Storage/Models/Restaurant.swift`, `Core/Network/DTOs/RestaurantDTO.swift` (with explicit `CodingKeys` per ARCH-11), `Core/Storage/Repositories/RestaurantRepository.swift:111`, and `Core/Sync/RealtimeSubscriptions.swift:205`. Missing the last two is the likely bug: the column would save but never come back down on sync.
+
+### Added to Sprint 3 during the 3.5 review
+
+**Story 1.5 — Visit History Survives a Reinstall and Reaches a Second Device.** Two compounding sync defects found 2026-09-01. `VisitLogRepository.pullFromRemote` is never called by anything, so visits are never restored after a reinstall or on a second device; and `VisitLogDTO.toModel()` never hydrates the `restaurant` relationship, so any visit that *does* arrive (the live realtime path) is dropped by History's row builder. Neither fix is visible without the other. **Scheduled ahead of 2.8**, which adds another way to write into a History that cannot currently be trusted. Reopens Epic 1.
 
 ### Logged but not scheduled
 

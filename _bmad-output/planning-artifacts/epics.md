@@ -343,6 +343,47 @@ So that my list is always current no matter which device I'm using.
 
 ---
 
+### Story 1.5: Visit History Survives a Reinstall and Reaches a Second Device
+
+As a Portland food enthusiast,
+I want the visits I have logged to be there when I reinstall the app or sign in on another device,
+So that my food journal is a record I can trust rather than whatever happens to be on this phone.
+
+**Context:** Found 2026-09-01 while reviewing story 3.5. **Two defects that must be fixed together.**
+
+1. **Visits are never pulled from the server.** `VisitLogRepository.pullFromRemote(restaurantId:)` exists and is declared on the protocol, but **no code anywhere calls it.** `AppState.reconcileOnForeground()` calls `restaurantRepository.pullFromRemote(userId:)` and nothing equivalent for visits. Restaurants come back after a reinstall; visits do not.
+2. **The `restaurant` relationship is never hydrated on inbound sync.** `VisitLogDTO.toModel()` sets every scalar but leaves `restaurant` nil, and `HistoryView` renders a row only `if let restaurant = log.restaurant`. So even a visit that does arrive — via the live realtime path, which is subscribed and working — is invisible in History.
+
+**Fixing either one alone produces no visible improvement.** Pull without hydration yields invisible rows; hydration without pull has nothing to hydrate. That is why this is one story.
+
+**Acceptance Criteria:**
+
+**Given** I have logged visits and I delete and reinstall the app
+**When** I sign in and open History
+**Then** my visits are all there, under the correct months
+
+**Given** I log a visit on one device
+**When** I open History on a second signed-in device
+**Then** that visit appears, with its restaurant name, neighborhood and note
+
+**Given** a visit arrives through the realtime subscription while the app is open
+**When** History is showing
+**Then** the row renders fully rather than being silently dropped
+
+**Given** a visit whose restaurant has not yet synced to this device
+**When** the visit is inserted locally
+**Then** it does not crash, and it becomes visible once its restaurant arrives
+
+**Given** the app pulls visits on foreground
+**When** the pull runs repeatedly
+**Then** it does not duplicate visits already held locally
+
+*Covers: FR17, FR18, NFR20*
+**Effort:** Medium. Touches the sync layer, not the UI.
+**Priority:** Ahead of story 2.8, which adds another way to put visits into History and therefore depends on History being trustworthy.
+
+---
+
 ## Epic 2: Your Portland Food Journal
 
 Users can add restaurants manually, view and edit a restaurant card with all its details, track status (Want to Go / Been There / Favorite), log visits with dates and notes, and delete restaurants. This is the complete personal curation loop and the quick win foundation.
