@@ -1,7 +1,7 @@
 # Story 3.5: Search Your Restaurants
 
 **Epic:** 3 — Find What to Eat Tonight
-**Status:** 🔲 Ready for Dev
+**Status:** 🔧 In progress — implemented and reviewed 2026-09-01; **blocked on one on-device check** (see Dev Notes)
 **Effort:** Small–Medium (two existing views, no backend, no schema)
 **Blocks:** Story 2.8 (the restaurant picker *is* this search), and Phase 1 of the S6 web parity spec
 
@@ -160,3 +160,49 @@ No new files. No repository changes. No schema changes.
 - History tab: search a word that exists only in a visit **note** — the visit is found
 - History tab: search a term matching only one month — no empty month headers appear
 - Switch tabs away and back — search field is empty, full list restored
+
+---
+
+## Dev Notes
+
+**Implemented 2026-09-01** (`bmad-build`, separate session), **reviewed the same day** via `bmad-code-review` — four layers: Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor. All four returned; none failed. Full findings in `spec-3-5-search-your-restaurants.md`.
+
+The three traps this story called out in advance were all handled correctly in the original implementation: the top-level `let` in `body`, filtering History logs before grouping, and `localizedStandardContains` over the case-insensitive variant. The review findings were around the edges of those, not in them.
+
+### Two decisions taken by Damon during review
+
+1. **`HistoryViewModel` renders from `ViewState` alone.** The first implementation kept a `logs` cache that the view rendered from directly, leaving the `.loaded` payload dead and `grouped` running twice per load. Now `search(_:)` re-derives `state` on each query change; `logs` remains only as the un-grouped source. `hasAnyVisits` was added so the view can still tell "no visits yet" from "nothing matched".
+2. **`ContentUnavailableView.search(text:)` on both tabs.** The bespoke `VStack` search-empty state in `RestaurantListView` was removed. ⚠️ **This narrows an AC**: the List AC asks for an empty state that "offers to clear it", and the system view has no clear button. The intent still holds because `.searchable` renders the system ✕ control in the field itself. **The AC wording should be updated to match** rather than left contradicting the code.
+
+### Fixes applied
+
+| Fix | Where |
+|---|---|
+| Search survives pushing a detail; clears only on a real tab change | `RestaurantListView`, `HistoryView` |
+| Orphan visits filtered before sectioning — no more bare month headers | `HistoryViewModel.grouped` |
+| `ViewState` is the single render source | `HistoryViewModel` |
+| System search-empty state on both tabs | both views |
+| Queries trimmed — whitespace is not a search | both |
+| Autocorrect and autocapitalisation off in both fields | both views |
+| `prompt:` on both search fields so their scope is discoverable | both views |
+| Active search reported even when filters exclude everything | `RestaurantListView` branch order |
+| `DateFormatter` hoisted to a `static let`, now locale-driven | `HistoryViewModel` |
+| Empty-query guard restored inside `matches(_:_:)` | `RestaurantListView` |
+
+### Still open — needs your hands
+
+**The on-device check this story flagged in advance has not been run.** The Design Notes named `.searchable` coexisting with the `FilterBarView` `.safeAreaInset(edge: .top)` as "the AC most likely to look wrong in practice", to be verified in both the filter bar's collapsed and expanded states. It cannot be settled by reading code, and there is no CLI build for this target.
+
+The three changed files pass `swiftc -parse`, which is **syntax only** — not a type-check, and not a build. **Nothing here has been compiled or run.**
+
+### Deferred
+
+Five items to `deferred-work.md`. The one that matters: **`VisitLogDTO.toModel()` never sets the `restaurant` relationship**, so every visit arriving by sync or realtime is invisible in History — and after an Xcode reinstall, that is all of them. The fix applied here only suppresses the empty month header; it does not make synced visits appear. That deserves its own story.
+
+## Change Log
+
+| Date | Change |
+|---|---|
+| 2026-09-01 | Story written, ready for dev |
+| 2026-09-01 | Implemented via `bmad-build` |
+| 2026-09-01 | Code review: 2 decisions resolved, 11 patches applied, 5 deferred, 1 dismissed |

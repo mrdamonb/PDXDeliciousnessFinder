@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-09-01  # 2.7 recorded as done; 2.8, 2.9, 3.5 added for Sprint 3; 4.4 logged from review (reopens epic 4)
+last_updated: 2026-09-01  # 3.5 reviewed: 11 patches applied, 5 deferred; awaiting on-device verification
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -65,7 +65,7 @@ development_status:
   3-2-filter-the-map: done
   3-3-restaurant-list-view-with-filters: done
   3-4-neighborhood-detection: done
-  3-5-search-your-restaurants: ready-for-dev   # Sprint 3 — the spine; 2-8 and web parity both reuse it
+  3-5-search-your-restaurants: in-progress   # reviewed + patched 2026-09-01; blocked on on-device filter-bar check
   epic-3-retrospective: optional
 
   # ─── Epic 4: Add Restaurants Instantly ──────────────────────────────────────
