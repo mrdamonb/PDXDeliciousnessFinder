@@ -1,7 +1,7 @@
 # Story 1.5: Visit History Survives a Reinstall and Reaches a Second Device
 
 **Epic:** 1 — Signed In & Ready
-**Status:** 🔲 Ready for Dev
+**Status:** 🔲 Ready for Dev — **scope grew 2026-09-02, see the correction below**
 **Effort:** Medium — sync layer only, no UI work
 **Found:** 2026-09-01, reviewing story 3.5
 **Priority:** **Before story 2.8.** That story adds another way to put visits into History; History has to be trustworthy first.
@@ -132,3 +132,48 @@ Both of these need two real environments, and neither can be settled by reading 
 - **Second device:** log a visit on device A, open History on device B — it appears with its restaurant details
 - Foreground the app repeatedly and confirm visits are not duplicated
 - Confirm the History empty state still appears for an account that genuinely has no visits
+
+---
+
+## Correction, 2026-09-02 — a third defect, and one claim above is wrong
+
+Found during the story 2.9 code review, and it **changes the shape of this story**.
+
+### The claim that is wrong
+
+Defect 2 above says the missing relationship "is live today on the realtime path: `RealtimeSubscriptions.handleVisitLogInsert` inserts `dto.toModel()` directly, so a visit logged on another device arrives and is invisible."
+
+**Visits do not arrive on the realtime path at all.** Nothing arrives on it.
+
+### Defect 3 — the realtime decoder cannot decode either DTO
+
+`RealtimeSubscriptions.realtimeDecoder` (`Core/Sync/RealtimeSubscriptions.swift:224`) sets `keyDecodingStrategy = .convertFromSnakeCase`. Both `RestaurantDTO` and `VisitLogDTO` declare **explicit** snake_case `CodingKeys`. The strategy rewrites the incoming JSON key `user_id` to `userId`, which then matches no `CodingKey` whose `stringValue` is `"user_id"`, so decoding throws on the first required key.
+
+**Reproduced directly**, not inferred: a `JSONDecoder` with `.convertFromSnakeCase` against a struct with explicit snake_case keys and a hand-written `init(from:)` fails with `DecodingError.keyNotFound: Key 'user_id' not found`. The identical payload decodes cleanly with no key strategy.
+
+Every realtime event throws into an empty `catch { // Non-fatal }` — `:102` for restaurants, `:165` for visit logs. **Epic 1 story 1.4, "Realtime Inbound Sync (Multi-Device)", is marked `done` and does not work for either table.** Restaurants appear to sync only because `pullFromRemote` passes no custom decoder and picks them up on the next foreground pull, which is what has hidden this.
+
+### What it means for this story
+
+The three defects stack, and **the acceptance criteria above are unchanged** — the user-visible outcome is the same. But the work is larger than described:
+
+1. Visits are never pulled — no call site for `pullFromRemote`
+2. The `restaurant` relationship is never hydrated on inbound sync
+3. **Realtime cannot decode, so the live path delivers nothing for either table**
+
+Fixing 1 and 2 alone gives a working journal that updates on foreground only. That may be an acceptable first cut — decide deliberately rather than by accident.
+
+### Fixing defect 3
+
+Two candidate fixes, and **it must be one or the other, never both**:
+
+- Drop `.convertFromSnakeCase` from `realtimeDecoder`. The explicit `CodingKeys` already do that job, and this leaves every DTO untouched.
+- Delete the explicit snake_case cases from both DTOs and let the strategy convert. Larger, and it would break `pullFromRemote`, which relies on those explicit keys with the default decoder.
+
+**The first is almost certainly right.** Whichever is chosen, make the empty `catch` log the error — a silent catch is what hid a dead sync path behind a story marked done.
+
+### Verification this adds
+
+- With the app open on device B, edit a restaurant on device A and confirm the change appears **without** foregrounding device B
+- Same for a visit
+- Confirm a decode failure now surfaces in the log rather than vanishing

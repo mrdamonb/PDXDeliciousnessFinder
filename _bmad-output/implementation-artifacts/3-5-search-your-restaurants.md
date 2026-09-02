@@ -1,7 +1,7 @@
 # Story 3.5: Search Your Restaurants
 
 **Epic:** 3 — Find What to Eat Tonight
-**Status:** 🔧 In progress — implemented and reviewed 2026-09-01; **blocked on one on-device check** (see Dev Notes)
+**Status:** ✅ Done — implemented and reviewed 2026-09-01; **device-verified 2026-09-02**
 **Effort:** Small–Medium (two existing views, no backend, no schema)
 **Blocks:** Story 2.8 (the restaurant picker *is* this search), and Phase 1 of the S6 web parity spec
 
@@ -206,3 +206,17 @@ Five items to `deferred-work.md`. The one that matters: **`VisitLogDTO.toModel()
 | 2026-09-01 | Story written, ready for dev |
 | 2026-09-01 | Implemented via `bmad-build` |
 | 2026-09-01 | Code review: 2 decisions resolved, 11 patches applied, 5 deferred, 1 dismissed |
+
+---
+
+## Device Verification, 2026-09-02
+
+Damon ran the targeted cases on his phone. All confirmed:
+
+1. **`.searchable` coexists with the `FilterBarView` safe-area inset.** The filter bar remains visible and usable with the search field revealed. **This closes the AC the story flagged before a line was written** as "the one most likely to look wrong in practice", and it is the only claim in this story that could never be settled by reading code.
+2. **Search survives pushing a restaurant detail and popping back.** Confirms the review fix — before it, the List tab discarded the query whenever a result was opened, because `HomeView` owns that tab's `NavigationStack` and the push fired the root's `.onDisappear`.
+3. Filter and search apply together; clearing search leaves the filter intact.
+4. History finds a visit by a word that appears only in its note.
+5. A single space does not empty the list — confirms the trimming patch.
+
+Story closed. Epic 3 complete.

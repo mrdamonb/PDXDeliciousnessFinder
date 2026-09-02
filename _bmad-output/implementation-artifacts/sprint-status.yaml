@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-09-01  # 1.5 logged from 3.5 review (reopens epic 1); 3.5 patched, awaiting on-device verification
+last_updated: 2026-09-02  # 2.9 and 3.5 both DONE (device-verified); epic 3 closed; 1.5 scope grew (realtime decoder dead for both tables)
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -43,8 +43,8 @@ development_status:
   1-1-app-foundation-and-email-sign-in: done
   1-2-swiftdata-core-storage-layer: done
   1-3-offline-write-queue-outbound-sync: done
-  1-4-realtime-inbound-sync-multi-device: done
-  1-5-visit-history-survives-reinstall: ready-for-dev  # found in 3.5 review; visits are never pulled AND never hydrated — do before 2.8
+  1-4-realtime-inbound-sync-multi-device: done  # ⚠️ marked done but PROVEN NOT WORKING 2026-09-02 — realtime decoder cannot decode either DTO; fix folded into 1-5
+  1-5-visit-history-survives-reinstall: ready-for-dev  # visits never pulled, never hydrated, AND realtime decode is dead — three defects; do before 2.8
   epic-1-retrospective: optional
 
   # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────
@@ -57,16 +57,16 @@ development_status:
   2-6-delete-a-restaurant: done
   2-7-history-tab-visit-journal: done          # shipped; was untracked until commit 67f73c6 (2026-09-01)
   2-8-add-a-visit-from-history: backlog        # Sprint 3 — blocked on 3-5
-  2-9-menu-at-the-point-of-logging: ready-for-dev  # Sprint 3 — independent; gated on the menu_url column
+  2-9-menu-at-the-point-of-logging: done  # device-verified 2026-09-02
   epic-2-retrospective: optional
 
   # ─── Epic 3: Find What to Eat Tonight ───────────────────────────────────────
-  epic-3: in-progress
+  epic-3: done
   3-1-portland-map-with-restaurant-pins: done
   3-2-filter-the-map: done
   3-3-restaurant-list-view-with-filters: done
   3-4-neighborhood-detection: done
-  3-5-search-your-restaurants: in-progress   # reviewed + patched 2026-09-01; blocked on on-device filter-bar check
+  3-5-search-your-restaurants: done   # device-verified 2026-09-02; filter-bar coexistence AC confirmed
   epic-3-retrospective: optional
 
   # ─── Epic 4: Add Restaurants Instantly ──────────────────────────────────────

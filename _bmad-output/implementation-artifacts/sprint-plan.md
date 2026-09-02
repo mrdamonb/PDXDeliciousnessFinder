@@ -193,8 +193,8 @@ Ordered by dependency, not by the order the ideas arrived.
 
 | # | Story | Surface | Status | Notes |
 |---|---|---|---|---|
-| 1 | **2.9 Menu at the Point of Logging** | iOS + web | 🔲 Ready for dev | Independent of everything else. Gated only on the `menu_url` column. Ship first for a same-day win. |
-| 2 | **3.5 Search Your Restaurants** | iOS | 🔲 Ready for dev | **The spine.** 2.8 and the whole web parity spec reuse it. |
+| 1 | **2.9 Menu at the Point of Logging** | iOS + web | ✅ Done (device-verified 2026-09-02) | Independent of everything else. Gated only on the `menu_url` column. Ship first for a same-day win. |
+| 2 | **3.5 Search Your Restaurants** | iOS | ✅ Done (device-verified 2026-09-02) | **The spine.** 2.8 and the whole web parity spec reuse it. |
 | 3 | **1.5 Visit history survives a reinstall** | iOS | 🔲 Ready for dev | Found in the 3.5 review. Do before 2.8 — History is not trustworthy until this lands. |
 | 4 | **2.8 Add a Visit from History** | iOS | 🔲 Backlog | Blocked on 3.5 (the picker *is* the search) and now on 1.5. |
 | 5 | **S6 Web Parity** | web | 🔲 Spec in `spec-wip.md` | History view, search, menu button, add-visit-from-history. Follows the iOS work so the shape is settled once. |
