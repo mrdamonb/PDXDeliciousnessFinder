@@ -16,6 +16,7 @@ struct RestaurantDTO: Identifiable, Sendable {
     var neighborhood: String?
     var city: String
     var website: String?
+    var menuUrl: String?
     var cuisine: String?
     var venueType: String
     /// Postgres `price_range` text value: "$", "$$", "$$$", or "$$$$".
@@ -37,6 +38,7 @@ struct RestaurantDTO: Identifiable, Sendable {
         case neighborhood
         case city
         case website
+        case menuUrl = "menu_url"
         case cuisine
         case venueType = "venue_type"
         case priceRange = "price_range"
@@ -63,6 +65,7 @@ extension RestaurantDTO: Encodable {
         try c.encodeIfPresent(neighborhood, forKey: .neighborhood)
         try c.encode(city, forKey: .city)
         try c.encodeIfPresent(website, forKey: .website)
+        try c.encodeIfPresent(menuUrl, forKey: .menuUrl)
         try c.encodeIfPresent(cuisine, forKey: .cuisine)
         try c.encode(venueType, forKey: .venueType)
         try c.encodeIfPresent(priceRange, forKey: .priceRange)
@@ -87,6 +90,7 @@ extension RestaurantDTO: Decodable {
         neighborhood = try c.decodeIfPresent(String.self, forKey: .neighborhood)
         city = try c.decode(String.self, forKey: .city)
         website = try c.decodeIfPresent(String.self, forKey: .website)
+        menuUrl = try c.decodeIfPresent(String.self, forKey: .menuUrl)
         cuisine = try c.decodeIfPresent(String.self, forKey: .cuisine)
         venueType = try c.decode(String.self, forKey: .venueType)
         priceRange = try c.decodeIfPresent(String.self, forKey: .priceRange)
@@ -124,6 +128,7 @@ extension RestaurantDTO {
         self.neighborhood = model.neighborhood
         self.city = model.city
         self.website = model.website
+        self.menuUrl = model.menuUrl
         self.cuisine = model.cuisine
         self.venueType = model.venueType.rawValue
         self.priceRange = Self.postgresText(fromApp: model.priceRange)
@@ -146,6 +151,7 @@ extension RestaurantDTO {
             neighborhood: neighborhood,
             city: city,
             website: website,
+            menuUrl: menuUrl,
             cuisine: cuisine,
             venueType: VenueType(rawValue: venueType) ?? .restaurant,
             priceRange: Self.appPriceRange(fromPostgresText: priceRange),

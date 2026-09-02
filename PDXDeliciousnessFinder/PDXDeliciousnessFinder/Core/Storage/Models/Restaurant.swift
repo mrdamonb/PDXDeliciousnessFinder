@@ -62,6 +62,7 @@ final class Restaurant {
     var neighborhood: String?
     var city: String
     var website: String?
+    var menuUrl: String?
     var cuisine: String?
     var venueType: VenueType
     var priceRange: PriceRange?
@@ -85,6 +86,7 @@ final class Restaurant {
         neighborhood: String? = nil,
         city: String = "Portland",
         website: String? = nil,
+        menuUrl: String? = nil,
         cuisine: String? = nil,
         venueType: VenueType = .restaurant,
         priceRange: PriceRange? = nil,
@@ -104,6 +106,7 @@ final class Restaurant {
         self.neighborhood = neighborhood
         self.city = city
         self.website = website
+        self.menuUrl = menuUrl
         self.cuisine = cuisine
         self.venueType = venueType
         self.priceRange = priceRange

@@ -203,6 +203,7 @@ final class RealtimeSubscriptions {
         model.neighborhood = dto.neighborhood
         model.city = dto.city
         model.website = dto.website
+        model.menuUrl = dto.menuUrl
         model.cuisine = dto.cuisine
         model.venueType = VenueType(rawValue: dto.venueType) ?? .restaurant
         model.priceRange = RestaurantDTO.appPriceRange(fromPostgresText: dto.priceRange)

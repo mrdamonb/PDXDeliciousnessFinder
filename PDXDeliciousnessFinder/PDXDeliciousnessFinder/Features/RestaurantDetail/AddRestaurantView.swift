@@ -166,6 +166,11 @@ struct RestaurantFormView: View {
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
+                TextField("Menu URL", text: $viewModel.menuUrl)
+                    .textContentType(.URL)
+                    .keyboardType(.URL)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
                 TextField("Note", text: $viewModel.generalNote, axis: .vertical)
                     .lineLimit(3...6)
             }

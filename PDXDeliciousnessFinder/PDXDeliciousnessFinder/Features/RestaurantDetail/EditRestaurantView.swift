@@ -17,6 +17,7 @@ struct EditRestaurantView: View {
         vm.address = restaurant.address ?? ""
         vm.city = restaurant.city
         vm.website = restaurant.website ?? ""
+        vm.menuUrl = restaurant.menuUrl ?? ""
         vm.cuisine = restaurant.cuisine ?? ""
         vm.neighborhood = restaurant.neighborhood ?? ""
         vm.venueType = restaurant.venueType
@@ -63,6 +64,7 @@ struct EditRestaurantView: View {
             restaurant.address = newAddress
             restaurant.city = viewModel.city.isEmpty ? "Portland" : viewModel.city
             restaurant.website = viewModel.website.isEmpty ? nil : viewModel.website
+            restaurant.menuUrl = WebURL.normalized(viewModel.menuUrl)
             restaurant.cuisine = viewModel.cuisine.isEmpty ? nil : viewModel.cuisine
             // Re-detect neighborhood when address changed or field is blank.
             // If the user typed a custom neighborhood and the address didn't change, preserve it.

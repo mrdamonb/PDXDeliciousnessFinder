@@ -6,6 +6,7 @@ import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, 
 import type { LucideIcon } from 'lucide-react'
 import type { Restaurant } from '@/lib/supabase/restaurants'
 import { getVisitLogs, logVisit, deleteRestaurant, type VisitLog } from '@/app/actions'
+import { normalizeWebUrl } from '@/lib/url'
 
 const STATUS_COLORS: Record<Restaurant['status'], string> = {
   want_to_go: '#D97706',
@@ -46,6 +47,10 @@ export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete 
   const dragStartY = useRef<number | null>(null)
   const statusColor = STATUS_COLORS[restaurant.status]
   const VenueIcon = restaurant.venue_type ? (VENUE_ICONS[restaurant.venue_type] ?? UtensilsCrossed) : null
+  // Only a genuine menu URL earns this link. When there is only a website, the
+  // panel's existing Website row already points there — rendering both would put two
+  // identical links on screen at once (code review 2026-09-02, decision a).
+  const menuUrl = normalizeWebUrl(restaurant.menu_url)
 
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -436,6 +441,19 @@ export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete 
           {/* Inline log form */}
           {showForm && (
             <div className="px-4 py-3" style={{ borderBottom: '1px solid #F0EBE5' }}>
+              {menuUrl && (
+                <a
+                  href={menuUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View menu (opens in a new tab)"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium mb-2 transition-opacity hover:opacity-70"
+                  style={{ color: '#C2410C' }}
+                >
+                  <Globe size={13} strokeWidth={2} aria-hidden="true" />
+                  View menu
+                </a>
+              )}
               <input
                 type="date"
                 value={formDate}

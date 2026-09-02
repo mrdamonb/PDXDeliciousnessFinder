@@ -16,12 +16,36 @@ struct AddVisitView: View {
     @State private var isSaving = false
     @State private var saveError: AppError?
     @State private var hapticSuccessTrigger = 0
+    @State private var menuLink: MenuLink?
+
+    /// Wrapper so the browser is presented with `.sheet(item:)` — setting this to nil
+    /// is the single way it closes, whether that came from SwiftUI or Safari's own
+    /// Done button.
+    private struct MenuLink: Identifiable {
+        let id = UUID()
+        let url: URL
+    }
+
+    /// The menu if there is a usable one, otherwise the website. Recomputed each pass.
+    ///
+    /// Both candidates go through `WebURL`, so a value stored without a scheme — or
+    /// with stray whitespace — still resolves, and a genuinely unusable menu URL falls
+    /// through to the website rather than suppressing the action entirely.
+    private var menuURL: URL? {
+        WebURL.url(restaurant.menuUrl) ?? WebURL.url(restaurant.website)
+    }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Visit Details") {
                     DatePicker("Date", selection: $visitedAt, in: ...Date.now, displayedComponents: .date)
+                    if let menuURL {
+                        Button("View menu") {
+                            menuLink = MenuLink(url: menuURL)
+                        }
+                        .accessibilityHint("Opens the menu in a browser without leaving this visit")
+                    }
                 }
                 Section("Note (optional)") {
                     TextField("How was it?", text: $note, axis: .vertical)
@@ -34,6 +58,9 @@ struct AddVisitView: View {
                             .font(.footnote)
                     }
                 }
+            }
+            .sheet(item: $menuLink) { link in
+                SafariView(url: link.url) { menuLink = nil }
             }
             .sensoryFeedback(.success, trigger: hapticSuccessTrigger)
             .navigationTitle(markVisited ? "Mark as Visited" : "Add Visit")

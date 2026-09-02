@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Utensils, Wine, Beer, Store } from 'lucide-react'
 import { updateRestaurant, deleteRestaurant, type UpdateRestaurantData } from '@/app/actions'
 import type { Restaurant } from '@/lib/supabase/restaurants'
+import { normalizeWebUrl } from '@/lib/url'
 
 type VenueTypeSnake = 'restaurant' | 'bar' | 'brewery' | 'food_cart'
 type Status = 'want_to_go' | 'been_there' | 'favorite'
@@ -34,6 +35,7 @@ type FormState = {
   status: Status
   general_note: string
   website: string
+  menu_url: string
 }
 
 type Props = {
@@ -53,6 +55,7 @@ export default function EditRestaurantModal({ restaurant, onClose, onSaveSuccess
     status: restaurant.status,
     general_note: restaurant.general_note ?? '',
     website: restaurant.website ?? '',
+    menu_url: restaurant.menu_url ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -89,6 +92,7 @@ export default function EditRestaurantModal({ restaurant, onClose, onSaveSuccess
         status: form.status,
         general_note: form.general_note.trim() || null,
         website: form.website.trim() || null,
+        menu_url: normalizeWebUrl(form.menu_url),
       }
       await updateRestaurant(restaurant.id, data)
       onSaveSuccess()
@@ -241,6 +245,20 @@ export default function EditRestaurantModal({ restaurant, onClose, onSaveSuccess
             <input
               value={form.website}
               onChange={(e) => set('website', e.target.value)}
+              placeholder="https://…"
+              style={textInputStyle}
+            />
+          </Field>
+
+          <Field label="Menu URL (optional)">
+            <input
+              type="url"
+              inputMode="url"
+              autoComplete="url"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={form.menu_url}
+              onChange={(e) => set('menu_url', e.target.value)}
               placeholder="https://…"
               style={textInputStyle}
             />

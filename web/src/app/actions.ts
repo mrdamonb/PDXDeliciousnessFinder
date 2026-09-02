@@ -92,6 +92,7 @@ export type UpdateRestaurantData = {
   status: 'want_to_go' | 'been_there' | 'favorite'
   general_note: string | null
   website: string | null
+  menu_url: string | null
 }
 
 export async function updateRestaurant(id: string, data: UpdateRestaurantData): Promise<void> {

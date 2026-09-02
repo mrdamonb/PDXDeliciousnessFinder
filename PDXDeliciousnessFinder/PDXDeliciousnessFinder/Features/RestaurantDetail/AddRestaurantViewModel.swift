@@ -11,6 +11,7 @@ final class AddRestaurantViewModel {
     var address = ""
     var city = "Portland"
     var website = ""
+    var menuUrl = ""
     var cuisine = ""
     var neighborhood = ""
     var venueType: VenueType = .restaurant
@@ -101,6 +102,7 @@ final class AddRestaurantViewModel {
                 neighborhood: resolvedNeighborhood,
                 city: city.isEmpty ? "Portland" : city,
                 website: website.isEmpty ? nil : website,
+                menuUrl: WebURL.normalized(menuUrl),
                 cuisine: { let t = cuisine.trimmingCharacters(in: .whitespaces); return t.isEmpty ? nil : t }(),
                 venueType: venueType,
                 priceRange: priceRange,
