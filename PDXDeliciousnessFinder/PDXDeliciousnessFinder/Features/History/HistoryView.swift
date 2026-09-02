@@ -1,14 +1,21 @@
 import SwiftUI
 
+/// Tab 2 in `HomeView`'s `TabView`.
+private let historyTabTag = 2
+
 struct HistoryView: View {
     @Environment(AppState.self) private var appState
     @State private var viewModel = HistoryViewModel()
     @State private var showAddRestaurant = false
+    @State private var searchText = ""
 
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("History")
+                .searchable(text: $searchText, prompt: "Restaurants and notes")
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button { showAddRestaurant = true } label: {
@@ -23,6 +30,16 @@ struct HistoryView: View {
         .onAppear {
             viewModel.load(repository: appState.visitLogRepository)
         }
+        .onChange(of: searchText) { _, newValue in
+            viewModel.search(newValue)
+        }
+        // Clear on an actual tab change, not on any disappearance. Pushing a
+        // restaurant detail must not discard the query the user just typed.
+        .onChange(of: appState.selectedTab) { _, tab in
+            guard tab != historyTabTag, !searchText.isEmpty else { return }
+            searchText = ""
+            viewModel.search("")
+        }
     }
 
     @ViewBuilder
@@ -33,7 +50,14 @@ struct HistoryView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         case .loaded(let sections) where sections.isEmpty:
-            emptyState
+            // `state` now holds only the sections matching the active query, so
+            // an empty payload means either "no visits at all" or "nothing
+            // matched" — `hasAnyVisits` is what tells them apart.
+            if viewModel.hasAnyVisits {
+                ContentUnavailableView.search(text: searchText)
+            } else {
+                emptyState
+            }
 
         case .loaded(let sections):
             List {

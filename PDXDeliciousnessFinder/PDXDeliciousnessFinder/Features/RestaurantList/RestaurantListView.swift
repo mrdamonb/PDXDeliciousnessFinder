@@ -5,11 +5,15 @@ private enum ListSortOrder {
     case recent, alphabetical
 }
 
+/// Tab 1 in `HomeView`'s `TabView`.
+private let listTabTag = 1
+
 struct RestaurantListView: View {
     @Environment(AppState.self) private var appState
     @Query private var restaurants: [Restaurant]
     @State private var showAddSheet = false
     @State private var sortOrder: ListSortOrder = .recent
+    @State private var searchText = ""
 
     init(userId: UUID) {
         _restaurants = Query(
@@ -25,17 +29,30 @@ struct RestaurantListView: View {
         let sorted: [Restaurant] = sortOrder == .alphabetical
             ? filtered.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
             : filtered   // @Query already returns by updatedAt descending
+        // Whitespace is not a search. Untrimmed, a single space matches every
+        // multi-word name and no single-word one.
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let searched: [Restaurant] = query.isEmpty
+            ? sorted
+            : sorted.filter { matches($0, query) }
 
         Group {
             if restaurants.isEmpty {
                 noRestaurantsState
+            } else if !query.isEmpty && searched.isEmpty {
+                // Checked before the filter state so a search that finds nothing
+                // is never masked by filters that also exclude everything.
+                ContentUnavailableView.search(text: query)
             } else if sorted.isEmpty {
                 noResultsState
             } else {
-                list(sorted)
+                list(searched)
             }
         }
         .navigationTitle("My List")
+        .searchable(text: $searchText, prompt: "Name, cuisine, or neighborhood")
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
         .safeAreaInset(edge: .top) {
             FilterBarView(restaurants: restaurants)
         }
@@ -67,6 +84,25 @@ struct RestaurantListView: View {
         .sheet(isPresented: $showAddSheet) {
             AddRestaurantView()
         }
+        // Clear on an actual tab change, not on any disappearance. This view is
+        // the root content of HomeView's NavigationStack, so `.onDisappear` also
+        // fires when a restaurant detail is pushed — which discarded the query
+        // the moment the user opened a result.
+        .onChange(of: appState.selectedTab) { _, tab in
+            if tab != listTabTag { searchText = "" }
+        }
+    }
+
+    // MARK: - Search
+
+    private func matches(_ restaurant: Restaurant, _ query: String) -> Bool {
+        // `"abc".localizedStandardContains("")` is false, so an empty query would
+        // match nothing rather than everything. Story 2.8's restaurant picker
+        // reuses this predicate, so the guard lives here, not at the call site.
+        guard !query.isEmpty else { return true }
+        return restaurant.name.localizedStandardContains(query)
+            || (restaurant.cuisine?.localizedStandardContains(query) ?? false)
+            || (restaurant.neighborhood?.localizedStandardContains(query) ?? false)
     }
 
     // MARK: - Subviews
@@ -124,4 +160,5 @@ struct RestaurantListView: View {
         }
         .padding()
     }
+
 }
