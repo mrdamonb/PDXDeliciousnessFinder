@@ -15,13 +15,31 @@ _bmad/                    BMAD methodology tooling — do not edit
 
 ## iOS App
 
-**Build:** Open `PDXDeliciousnessFinder/PDXDeliciousnessFinder.xcodeproj` in Xcode 16+. Build and run on device or simulator. No CLI build.
+**Build:** Open `PDXDeliciousnessFinder/PDXDeliciousnessFinder.xcodeproj` in Xcode 16+ to build and run on device or simulator.
+
+**There is a CLI build, and you should use it.** From `PDXDeliciousnessFinder/`:
+
+```bash
+xcodebuild -scheme PDXDeliciousnessFinder -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+```
+
+It compiles the app and the ShareExtension and reports real errors. Use it before claiming a change is complete — `swiftc -parse` on individual files is syntax-only and will not catch a type error. This file previously said "No CLI build"; that was wrong, and at least one story was handed over unbuilt because an agent believed it.
+
+Running on a device or simulator is still a separate step, and there is no test target anywhere in this repo — so a green build is the ceiling of what automation proves here.
 
 **Secrets:** `Config/Config.xcconfig` (gitignored). Copy `Config.xcconfig.example` and fill in `SUPABASE_HOST` and `SUPABASE_ANON_KEY`. Do not hardcode values — xcconfig is loaded at build time.
 
 **Targets:** Main app + `ShareExtension`. Both share an App Groups entitlement. The share extension imports `Core/` only — it does not link the Supabase framework, so all Places/enrichment calls in the extension use URLSession directly.
 
-**Source file discovery:** Xcode uses `fileSystemSynchronizedGroups` (Xcode 16+). Source files are not individually listed in `pbxproj` — new files in tracked folders are auto-included. Both targets auto-include `PDXDeliciousnessFinder/`.
+**Source file discovery:** Xcode uses `fileSystemSynchronizedGroups` (Xcode 16+). **Adding** a source file to a tracked folder auto-includes it in both targets — no `pbxproj` edit needed.
+
+**Renames and deletions are different, and this will break your build.** `project.pbxproj` carries a `PBXFileSystemSynchronizedBuildFileExceptionSet` listing many files individually by path, under `membershipExceptions`, to exclude them from the `ShareExtension` target. Renaming or deleting a listed file without updating that entry fails the build with:
+
+```
+error: Build input file cannot be found: '.../Features/History/HistoryViewModel.swift'
+```
+
+Grep `membershipExceptions` in `project.pbxproj` and update the path in place. Adding a new file needs no entry unless it must be kept out of the extension.
 
 ### iOS Architecture Rules (non-negotiable)
 
