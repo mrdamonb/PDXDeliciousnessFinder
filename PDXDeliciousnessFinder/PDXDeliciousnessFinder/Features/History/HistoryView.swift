@@ -1,17 +1,34 @@
 import SwiftUI
+import SwiftData
 
 /// Tab 2 in `HomeView`'s `TabView`.
 private let historyTabTag = 2
 
 struct HistoryView: View {
     @Environment(AppState.self) private var appState
-    @State private var viewModel = HistoryViewModel()
+    @Query private var logs: [VisitLog]
     @State private var showAddRestaurant = false
     @State private var searchText = ""
 
+    init(userId: UUID) {
+        // @Query rather than a one-shot repository fetch, so a visit arriving by
+        // realtime or a foreground pull renders while History is on screen —
+        // matching MapView and RestaurantListView. (Review decision, 2026-09-02.)
+        _logs = Query(
+            filter: #Predicate<VisitLog> { $0.userId == userId },
+            sort: \VisitLog.visitedAt,
+            order: .reverse
+        )
+    }
+
     var body: some View {
+        // Computed at the top level of body so @Query and @Observable tracking
+        // both fire on change (Story 3.3 precedent).
+        let sections = HistoryGrouping.sections(from: logs, matching: searchText)
+        let hasAnyVisits = logs.contains { $0.restaurant != nil }
+
         NavigationStack {
-            content
+            content(sections: sections, hasAnyVisits: hasAnyVisits)
                 .navigationTitle("History")
                 .searchable(text: $searchText, prompt: "Restaurants and notes")
                 .autocorrectionDisabled()
@@ -27,39 +44,23 @@ struct HistoryView: View {
         .sheet(isPresented: $showAddRestaurant) {
             AddRestaurantView()
         }
-        .onAppear {
-            viewModel.load(repository: appState.visitLogRepository)
-        }
-        .onChange(of: searchText) { _, newValue in
-            viewModel.search(newValue)
-        }
         // Clear on an actual tab change, not on any disappearance. Pushing a
         // restaurant detail must not discard the query the user just typed.
         .onChange(of: appState.selectedTab) { _, tab in
-            guard tab != historyTabTag, !searchText.isEmpty else { return }
-            searchText = ""
-            viewModel.search("")
+            if tab != historyTabTag { searchText = "" }
         }
     }
 
     @ViewBuilder
-    private var content: some View {
-        switch viewModel.state {
-        case .idle, .loading:
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-        case .loaded(let sections) where sections.isEmpty:
-            // `state` now holds only the sections matching the active query, so
-            // an empty payload means either "no visits at all" or "nothing
-            // matched" — `hasAnyVisits` is what tells them apart.
-            if viewModel.hasAnyVisits {
+    private func content(sections: [MonthSection], hasAnyVisits: Bool) -> some View {
+        if sections.isEmpty {
+            // Tell "no visits yet" apart from "nothing matched your search".
+            if hasAnyVisits {
                 ContentUnavailableView.search(text: searchText)
             } else {
                 emptyState
             }
-
-        case .loaded(let sections):
+        } else {
             List {
                 ForEach(sections) { section in
                     Section(section.title) {
@@ -73,13 +74,6 @@ struct HistoryView: View {
                     }
                 }
             }
-
-        case .error:
-            ContentUnavailableView(
-                "Couldn't Load History",
-                systemImage: "exclamationmark.triangle",
-                description: Text("Try again later.")
-            )
         }
     }
 

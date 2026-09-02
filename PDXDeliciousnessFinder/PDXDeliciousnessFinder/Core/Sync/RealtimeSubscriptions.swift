@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import SwiftData
 import Supabase
+
+private let realtimeLog = Logger(subsystem: "com.damonbrennen.PDXDeliciousnessFinder", category: "RealtimeSubscriptions")
 
 /// Manages Supabase Realtime channel subscriptions for inbound sync.
 ///
@@ -92,15 +95,18 @@ final class RealtimeSubscriptions {
             case .delete(let action):
                 // With default replica identity only the PK is returned;
                 // decode from old record columns.
-                if let dto = try? action.decodeOldRecord(as: RestaurantDTO.self, decoder: .realtimeDecoder) {
-                    try handleRestaurantDelete(id: dto.id)
-                }
+                // `try`, not `try?`: a decode failure here must reach the catch
+                // below and be logged. Discarding it is the silent-swallow shape
+                // this story exists to remove.
+                let dto = try action.decodeOldRecord(as: RestaurantDTO.self, decoder: .realtimeDecoder)
+                try handleRestaurantDelete(id: dto.id)
 
             case .select:
                 break
             }
         } catch {
             // Non-fatal: a missed realtime event will be caught on next pull.
+            realtimeLog.error("Restaurant realtime change failed: \(String(describing: error), privacy: .public)")
         }
     }
 
@@ -110,8 +116,24 @@ final class RealtimeSubscriptions {
             predicate: #Predicate { $0.id == dto.id }
         )
         guard (try modelContext.fetch(descriptor)).isEmpty else { return }
-        modelContext.insert(dto.toModel())
+        let restaurant = dto.toModel()
+        modelContext.insert(restaurant)
+        // Realtime ordering is not guaranteed, so visits for this restaurant may
+        // already be sitting here unlinked. Repair them now rather than leaving
+        // them invisible until the next foreground pull.
+        try rehydrateDanglingVisits(for: restaurant)
         try modelContext.save()
+    }
+
+    /// Links any local visit that belongs to `restaurant` but has no relationship yet.
+    private func rehydrateDanglingVisits(for restaurant: Restaurant) throws {
+        let restaurantId = restaurant.id
+        let descriptor = FetchDescriptor<VisitLog>(
+            predicate: #Predicate { $0.restaurantId == restaurantId }
+        )
+        for visitLog in try modelContext.fetch(descriptor) where visitLog.restaurant == nil {
+            visitLog.restaurant = restaurant
+        }
     }
 
     private func handleRestaurantUpdate(_ dto: RestaurantDTO) throws {
@@ -155,15 +177,16 @@ final class RealtimeSubscriptions {
                 break
 
             case .delete(let action):
-                if let dto = try? action.decodeOldRecord(as: VisitLogDTO.self, decoder: .realtimeDecoder) {
-                    try handleVisitLogDelete(id: dto.id)
-                }
+                // `try`, not `try?` — see the restaurant delete branch.
+                let dto = try action.decodeOldRecord(as: VisitLogDTO.self, decoder: .realtimeDecoder)
+                try handleVisitLogDelete(id: dto.id)
 
             case .select:
                 break
             }
         } catch {
-            // Non-fatal.
+            // Non-fatal: a missed realtime event will be caught on next pull.
+            realtimeLog.error("Visit log realtime change failed: \(String(describing: error), privacy: .public)")
         }
     }
 
@@ -173,8 +196,21 @@ final class RealtimeSubscriptions {
             predicate: #Predicate { $0.id == dto.id }
         )
         guard (try modelContext.fetch(descriptor)).isEmpty else { return }
-        modelContext.insert(dto.toModel())
+        let visitLog = dto.toModel()
+        modelContext.insert(visitLog)
+        hydrateRestaurant(for: visitLog)
         try modelContext.save()
+    }
+
+    /// Realtime insert ordering is not guaranteed, so a visit can arrive before
+    /// its restaurant does. Leaving `restaurant` nil is acceptable — the next
+    /// foreground pull's re-hydration pass repairs it.
+    private func hydrateRestaurant(for visitLog: VisitLog) {
+        let restaurantId = visitLog.restaurantId
+        let descriptor = FetchDescriptor<Restaurant>(
+            predicate: #Predicate { $0.id == restaurantId }
+        )
+        visitLog.restaurant = try? modelContext.fetch(descriptor).first
     }
 
     private func handleVisitLogDelete(id: UUID) throws {
@@ -218,10 +254,14 @@ final class RealtimeSubscriptions {
 // MARK: - Realtime JSON decoder
 
 private extension JSONDecoder {
-    /// Decoder configured for Supabase Realtime payloads (ISO8601 dates, snake_case keys).
+    /// Decoder configured for Supabase Realtime payloads (ISO8601 dates).
+    ///
+    /// No `keyDecodingStrategy` — both DTOs declare explicit snake_case
+    /// `CodingKeys`, and `.convertFromSnakeCase` rewrites keys like `user_id`
+    /// to `userId` before they reach those `CodingKeys`, so every required
+    /// key fails to match and decoding throws (`DecodingError.keyNotFound`).
     static let realtimeDecoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }()

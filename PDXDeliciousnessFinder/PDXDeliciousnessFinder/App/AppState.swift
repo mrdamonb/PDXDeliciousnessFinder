@@ -1,8 +1,11 @@
 import Foundation
 import Observation
+import OSLog
 import SwiftData
 import Supabase
 import CoreLocation
+
+private let syncLog = Logger(subsystem: "com.damonbrennen.PDXDeliciousnessFinder", category: "AppState")
 
 @Observable
 @MainActor
@@ -46,6 +49,11 @@ final class AppState {
                     .set(session?.user.id.uuidString, forKey: .currentUserIdKey)
                 if let user = session?.user {
                     realtimeSubscriptions.start(userId: user.id)
+                    // Signing in does not change scenePhase, and the cold-launch
+                    // .active transition fires before auth resolves — so without
+                    // this, nothing pulls after a reinstall until the user
+                    // backgrounds and re-foregrounds the app.
+                    Task { await reconcileOnForeground() }
                 }
             case .signedOut:
                 currentUser = nil
@@ -63,6 +71,7 @@ final class AppState {
 
     /// Set to switch to the map tab programmatically (0 = map, 1 = list).
     var selectedTab: Int = 0
+    private var isReconciling = false
     /// Coordinate for MapView to zoom to; pair with mapFocusTrigger.
     var mapFocusCoordinate: CLLocationCoordinate2D?
     /// Incrementing this causes MapView to animate to mapFocusCoordinate.
@@ -113,6 +122,11 @@ final class AppState {
     /// (including those from the share extension) and pulls down remote changes.
     func reconcileOnForeground() async {
         guard let user = currentUser else { return }
+        // Sign-in and scenePhase can both fire this; overlapping runs would
+        // interleave the two pulls and break the ordering below.
+        guard !isReconciling else { return }
+        isReconciling = true
+        defer { isReconciling = false }
 
         // Clear the extension-write flag immediately so we don't double-process.
         let defaults = UserDefaults(suiteName: PersistenceController.appGroupID)
@@ -121,7 +135,22 @@ final class AppState {
         }
 
         await syncQueue.flush()
-        try? await restaurantRepository.pullFromRemote(userId: user.id)
+
+        // Restaurants must land locally before visits are hydrated against them.
+        // If that fails, skip the visit pull: every visit would insert with a nil
+        // relationship and be filtered out of History anyway.
+        do {
+            try await restaurantRepository.pullFromRemote(userId: user.id)
+        } catch {
+            syncLog.error("Restaurant pull failed: \(String(describing: error), privacy: .public)")
+            return
+        }
+
+        do {
+            try await visitLogRepository.pullFromRemote(userId: user.id)
+        } catch {
+            syncLog.error("Visit log pull failed: \(String(describing: error), privacy: .public)")
+        }
     }
 
     // MARK: - Email / Password Auth

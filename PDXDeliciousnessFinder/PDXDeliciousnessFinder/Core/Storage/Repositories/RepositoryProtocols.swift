@@ -27,6 +27,5 @@ protocol VisitLogRepositoryProtocol: AnyObject {
     func delete(_ visitLog: VisitLog) throws
     func fetchAll(for restaurantId: UUID) throws -> [VisitLog]
     func fetch(id: UUID) throws -> VisitLog?
-    func fetchAllVisits() throws -> [VisitLog]
-    func pullFromRemote(restaurantId: UUID) async throws
+    func pullFromRemote(userId: UUID) async throws
 }

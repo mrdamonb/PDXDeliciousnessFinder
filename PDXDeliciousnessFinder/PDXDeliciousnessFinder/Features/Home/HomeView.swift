@@ -33,7 +33,7 @@ struct HomeView: View {
                 .tabItem { Label("List", systemImage: "list.bullet") }
                 .tag(1)
 
-                HistoryView()
+                HistoryView(userId: userId)
                     .tabItem { Label("History", systemImage: "fork.knife") }
                     .tag(2)
             }
