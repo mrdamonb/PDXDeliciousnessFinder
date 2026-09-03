@@ -34,7 +34,7 @@ struct RestaurantListView: View {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         let searched: [Restaurant] = query.isEmpty
             ? sorted
-            : sorted.filter { matches($0, query) }
+            : sorted.filter { RestaurantSearch.matches($0, query) }
 
         Group {
             if restaurants.isEmpty {
@@ -91,18 +91,6 @@ struct RestaurantListView: View {
         .onChange(of: appState.selectedTab) { _, tab in
             if tab != listTabTag { searchText = "" }
         }
-    }
-
-    // MARK: - Search
-
-    private func matches(_ restaurant: Restaurant, _ query: String) -> Bool {
-        // `"abc".localizedStandardContains("")` is false, so an empty query would
-        // match nothing rather than everything. Story 2.8's restaurant picker
-        // reuses this predicate, so the guard lives here, not at the call site.
-        guard !query.isEmpty else { return true }
-        return restaurant.name.localizedStandardContains(query)
-            || (restaurant.cuisine?.localizedStandardContains(query) ?? false)
-            || (restaurant.neighborhood?.localizedStandardContains(query) ?? false)
     }
 
     // MARK: - Subviews

@@ -7,10 +7,17 @@ private let historyTabTag = 2
 struct HistoryView: View {
     @Environment(AppState.self) private var appState
     @Query private var logs: [VisitLog]
-    @State private var showAddRestaurant = false
+    @State private var showPickRestaurant = false
+    /// Set by the picker, consumed once its sheet has actually gone.
+    @State private var pickedRestaurant: Restaurant?
+    /// Drives the Add Visit sheet, presented only after the picker closed.
+    @State private var visitRestaurant: Restaurant?
     @State private var searchText = ""
 
+    private let userId: UUID
+
     init(userId: UUID) {
+        self.userId = userId
         // @Query rather than a one-shot repository fetch, so a visit arriving by
         // realtime or a foreground pull renders while History is on screen —
         // matching MapView and RestaurantListView. (Review decision, 2026-09-02.)
@@ -35,14 +42,26 @@ struct HistoryView: View {
                 .textInputAutocapitalization(.never)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button { showAddRestaurant = true } label: {
+                        Button { showPickRestaurant = true } label: {
                             Image(systemName: "plus")
                         }
                     }
                 }
         }
-        .sheet(isPresented: $showAddRestaurant) {
-            AddRestaurantView()
+        // Two sheets in sequence, never stacked: the picker closes first, then Add
+        // Visit opens. Presenting Add Visit from inside the picker made Safari the
+        // third sheet in a chain, and dismissing it collapsed all of them back to
+        // History (device report, 2026-09-02).
+        .sheet(isPresented: $showPickRestaurant, onDismiss: {
+            if let picked = pickedRestaurant {
+                pickedRestaurant = nil
+                visitRestaurant = picked
+            }
+        }) {
+            PickRestaurantView(userId: userId) { pickedRestaurant = $0 }
+        }
+        .sheet(item: $visitRestaurant) { restaurant in
+            AddVisitView(restaurant: restaurant, markVisited: true, title: "Add Visit")
         }
         // Clear on an actual tab change, not on any disappearance. Pushing a
         // restaurant detail must not discard the query the user just typed.

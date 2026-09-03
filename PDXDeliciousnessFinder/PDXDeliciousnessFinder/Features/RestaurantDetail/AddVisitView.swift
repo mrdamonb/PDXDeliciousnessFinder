@@ -7,8 +7,12 @@ struct AddVisitView: View {
     @Environment(AppState.self) private var appState
 
     let restaurant: Restaurant
-    /// When true, also changes the restaurant status to .beenThere on save.
+    /// When true, a `want_to_go` restaurant is promoted to `been_there` on save.
+    /// Never downgrades a `favorite` — see `save()`.
     var markVisited: Bool = false
+    /// Overrides the sheet title. The promotion flag drives behaviour, not wording:
+    /// the History picker promotes status but is still "Add Visit" to the user.
+    var title: String?
     var onSave: (() -> Void)? = nil
 
     @State private var visitedAt: Date = .now
@@ -63,7 +67,7 @@ struct AddVisitView: View {
                 SafariView(url: link.url) { menuLink = nil }
             }
             .sensoryFeedback(.success, trigger: hapticSuccessTrigger)
-            .navigationTitle(markVisited ? "Mark as Visited" : "Add Visit")
+            .navigationTitle(title ?? (markVisited ? "Mark as Visited" : "Add Visit"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -93,7 +97,9 @@ struct AddVisitView: View {
             visitLog.restaurant = restaurant
             try appState.visitLogRepository.save(visitLog)
 
-            if markVisited {
+            // Only a want_to_go restaurant is promoted by logging a visit — a
+            // favorite must never be downgraded to been_there (story 2.8).
+            if markVisited && restaurant.status == .wantToGo {
                 restaurant.status = .beenThere
                 try appState.restaurantRepository.update(restaurant)
             }
