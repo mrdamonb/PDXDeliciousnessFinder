@@ -682,6 +682,49 @@ So that I can check what a dish was called without abandoning the note I am part
 *Covers: FR17, FR20*
 **Schema:** adds `menu_url text` to `restaurants`. Independent of 3.5 and 2.8 — shippable on its own.
 
+### Story 2.10: Edit a Visit
+
+As a Portland food enthusiast,
+I want to go back and edit a visit I already logged,
+So that I can add what I ate once I remember it, or fix a date I got wrong.
+
+**Context:** Requested 2026-09-02, from the real workflow: log the visit now, look up what the dish was called later, come back and write it down. Today a visit is write-once — there is no update path anywhere. `VisitLogRepository` has `save` (insert) and `delete` only, `RealtimeSubscriptions` treats a visit `.update` event as a no-op with the comment "visit logs are immutable", and `pullFromRemote` skips any row it already holds. **Editing therefore un-defers two sync items from the story 1.5 review.**
+
+**Acceptance Criteria:**
+
+**Given** I am on the History tab
+**When** I swipe a visit row
+**Then** I get an Edit action
+
+**Given** I tap Edit
+**When** the sheet opens
+**Then** it is pre-filled with that visit's existing date and note, and shows the same "View menu" action the logging sheet has
+
+**Given** I change the note and save
+**When** the sheet dismisses
+**Then** the History row shows the new note immediately
+
+**Given** I edit a visit on one device
+**When** my other device foregrounds, or is open and subscribed
+**Then** it shows the edited note — not the original
+
+**Given** the same visit was edited on two devices
+**When** both edits sync
+**Then** the more recent edit wins, decided by a timestamp rather than by arrival order
+
+**Given** I edit a visit while offline
+**When** connectivity returns
+**Then** the edit syncs, with no duplicate visit created
+
+**Given** I save an edit
+**When** it persists
+**Then** the visit keeps its original `id` and `created_at` — an edit must never become a second visit
+
+*Covers: FR17, FR18, FR19*
+**Effort:** Medium. Schema, sync layer, and UI. Not a UI-only change.
+
+---
+
 ## Epic 3: Find What to Eat Tonight
 
 Users can open a Portland map and see all their restaurants as color-coded, venue-typed pins, filter by status / neighborhood / cuisine / price in one motion, switch to a list view with the same filters, and tap any pin or row to open a restaurant card. This is the 30-second sidewalk decision moment.
