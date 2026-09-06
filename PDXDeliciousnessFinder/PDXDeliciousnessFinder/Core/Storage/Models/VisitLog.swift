@@ -11,6 +11,7 @@ final class VisitLog {
     var visitedAt: Date
     var note: String?
     var createdAt: Date
+    var updatedAt: Date = Date.now
 
     var restaurant: Restaurant?
 
@@ -20,7 +21,8 @@ final class VisitLog {
         userId: UUID,
         visitedAt: Date = .now,
         note: String? = nil,
-        createdAt: Date = .now
+        createdAt: Date = .now,
+        updatedAt: Date = .now
     ) {
         self.id = id
         self.restaurantId = restaurantId
@@ -28,5 +30,6 @@ final class VisitLog {
         self.visitedAt = visitedAt
         self.note = note
         self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }

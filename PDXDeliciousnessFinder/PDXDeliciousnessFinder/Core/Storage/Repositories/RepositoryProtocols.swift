@@ -24,6 +24,7 @@ protocol RestaurantRepositoryProtocol: AnyObject {
 protocol VisitLogRepositoryProtocol: AnyObject {
     @discardableResult
     func save(_ visitLog: VisitLog) throws -> VisitLog
+    func update(_ visitLog: VisitLog) throws
     func delete(_ visitLog: VisitLog) throws
     func fetchAll(for restaurantId: UUID) throws -> [VisitLog]
     func fetch(id: UUID) throws -> VisitLog?

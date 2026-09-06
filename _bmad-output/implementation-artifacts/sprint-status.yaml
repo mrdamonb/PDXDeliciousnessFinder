@@ -30,7 +30,7 @@
 # - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
 
 generated: 2026-04-15
-last_updated: 2026-09-05  # 2.8 device-verified and done (SafariView dismiss fix); 1.5 reviewed and patched, pending device verification
+last_updated: 2026-09-06  # 2.10 implemented, code-reviewed, patched, build green, awaiting device pass; 2.8 device-verified and done (SafariView dismiss fix); 1.5 reviewed and patched, pending device verification
 project: PDX Deliciousness Finder
 project_key: NOKEY
 tracking_system: file-system
@@ -58,7 +58,7 @@ development_status:
   2-7-history-tab-visit-journal: done          # shipped; was untracked until commit 67f73c6 (2026-09-01)
   2-8-add-a-visit-from-history: done  # device-verified 2026-09-05; root cause was SafariView never calling dismiss() on Done tap (shared code, also affects RestaurantDetailView's Add Visit)
   2-9-menu-at-the-point-of-logging: done  # device-verified 2026-09-02
-  2-10-edit-a-visit: ready-for-dev  # requested 2026-09-02; edits must sync — un-defers the update path and insert-only pull from the 1.5 review
+  2-10-edit-a-visit: review  # implemented + code-reviewed 2026-09-06 (spec-2-10-edit-a-visit.md), build green, not device-verified; migration applied live by hand (matches 2.9 precedent, not via db push — see spec for why)
   epic-2-retrospective: optional
 
   # ─── Epic 3: Find What to Eat Tonight ───────────────────────────────────────

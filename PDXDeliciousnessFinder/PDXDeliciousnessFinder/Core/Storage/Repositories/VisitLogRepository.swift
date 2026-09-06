@@ -45,6 +45,17 @@ final class VisitLogRepository: VisitLogRepositoryProtocol {
         return visitLog
     }
 
+    /// Updates an existing visit locally and enqueues a remote upsert.
+    /// Preserves `id` and `createdAt` — an edit is a mutation, never a new row.
+    func update(_ visitLog: VisitLog) throws {
+        visitLog.updatedAt = .now
+        try modelContext.save()
+        try syncQueue.enqueueUpsert(
+            table: SupabaseTables.visitLogs,
+            recordId: visitLog.id
+        )
+    }
+
     func delete(_ visitLog: VisitLog) throws {
         let id = visitLog.id
         modelContext.delete(visitLog)
@@ -72,7 +83,11 @@ final class VisitLogRepository: VisitLogRepositoryProtocol {
         let restaurantsById = try restaurantLookup()
 
         for dto in dtos {
-            if (try fetch(id: dto.id)) == nil {
+            if let existing = try fetch(id: dto.id) {
+                if dto.updatedAt > existing.updatedAt {
+                    applyDTO(dto, to: existing)
+                }
+            } else {
                 let visitLog = dto.toModel()
                 visitLog.restaurant = restaurantsById[visitLog.restaurantId]
                 modelContext.insert(visitLog)
@@ -91,6 +106,15 @@ final class VisitLogRepository: VisitLogRepositoryProtocol {
     }
 
     // MARK: - Private
+
+    /// Applies only the fields a user can actually edit. `restaurantId`,
+    /// `userId`, and `createdAt` are never overwritten — an edit never
+    /// changes which restaurant a visit belongs to.
+    private func applyDTO(_ dto: VisitLogDTO, to model: VisitLog) {
+        model.visitedAt = dto.visitedAt
+        model.note = dto.note
+        model.updatedAt = dto.updatedAt
+    }
 
     private func restaurantLookup() throws -> [UUID: Restaurant] {
         let restaurants = try modelContext.fetch(FetchDescriptor<Restaurant>())

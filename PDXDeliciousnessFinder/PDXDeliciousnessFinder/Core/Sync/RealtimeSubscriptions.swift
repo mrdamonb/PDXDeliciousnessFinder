@@ -172,9 +172,9 @@ final class RealtimeSubscriptions {
                 let dto = try action.decodeRecord(as: VisitLogDTO.self, decoder: .realtimeDecoder)
                 try handleVisitLogInsert(dto)
 
-            case .update:
-                // Visit logs are immutable after creation; updates are no-ops.
-                break
+            case .update(let action):
+                let dto = try action.decodeRecord(as: VisitLogDTO.self, decoder: .realtimeDecoder)
+                try handleVisitLogUpdate(dto)
 
             case .delete(let action):
                 // `try`, not `try?` — see the restaurant delete branch.
@@ -213,6 +213,25 @@ final class RealtimeSubscriptions {
         visitLog.restaurant = try? modelContext.fetch(descriptor).first
     }
 
+    private func handleVisitLogUpdate(_ dto: VisitLogDTO) throws {
+        // Don't overwrite locally queued unsynced writes.
+        guard !hasPendingOperation(for: dto.id) else { return }
+        let descriptor = FetchDescriptor<VisitLog>(
+            predicate: #Predicate { $0.id == dto.id }
+        )
+        guard let existing = (try modelContext.fetch(descriptor)).first else {
+            // Record doesn't exist locally — treat as insert.
+            let visitLog = dto.toModel()
+            modelContext.insert(visitLog)
+            hydrateRestaurant(for: visitLog)
+            try modelContext.save()
+            return
+        }
+        guard dto.updatedAt > existing.updatedAt else { return }
+        applyVisitLogDTO(dto, to: existing)
+        try modelContext.save()
+    }
+
     private func handleVisitLogDelete(id: UUID) throws {
         guard !hasPendingOperation(for: id) else { return }
         let descriptor = FetchDescriptor<VisitLog>(
@@ -247,6 +266,15 @@ final class RealtimeSubscriptions {
         model.generalNote = dto.generalNote
         model.placeId = dto.placeId
         model.sourceUrl = dto.sourceUrl
+        model.updatedAt = dto.updatedAt
+    }
+
+    /// Applies only the fields a user can actually edit. `restaurantId`,
+    /// `userId`, and `createdAt` are never overwritten — an edit never
+    /// changes which restaurant a visit belongs to.
+    private func applyVisitLogDTO(_ dto: VisitLogDTO, to model: VisitLog) {
+        model.visitedAt = dto.visitedAt
+        model.note = dto.note
         model.updatedAt = dto.updatedAt
     }
 }

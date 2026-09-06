@@ -13,6 +13,7 @@ struct VisitLogDTO: Identifiable, Sendable {
     var visitedAt: Date
     var note: String?
     let createdAt: Date
+    var updatedAt: Date
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -21,6 +22,7 @@ struct VisitLogDTO: Identifiable, Sendable {
         case visitedAt = "visited_at"
         case note
         case createdAt = "created_at"
+        case updatedAt = "updated_at"
     }
 }
 
@@ -35,6 +37,7 @@ extension VisitLogDTO: Encodable {
         try c.encode(visitedAt, forKey: .visitedAt)
         try c.encodeIfPresent(note, forKey: .note)
         try c.encode(createdAt, forKey: .createdAt)
+        try c.encode(updatedAt, forKey: .updatedAt)
     }
 }
 
@@ -47,6 +50,7 @@ extension VisitLogDTO: Decodable {
         visitedAt = try c.decode(Date.self, forKey: .visitedAt)
         note = try c.decodeIfPresent(String.self, forKey: .note)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
     }
 }
 
@@ -60,6 +64,7 @@ extension VisitLogDTO {
         self.visitedAt = model.visitedAt
         self.note = model.note
         self.createdAt = model.createdAt
+        self.updatedAt = model.updatedAt
     }
 
     func toModel() -> VisitLog {
@@ -69,7 +74,8 @@ extension VisitLogDTO {
             userId: userId,
             visitedAt: visitedAt,
             note: note,
-            createdAt: createdAt
+            createdAt: createdAt,
+            updatedAt: updatedAt
         )
     }
 }

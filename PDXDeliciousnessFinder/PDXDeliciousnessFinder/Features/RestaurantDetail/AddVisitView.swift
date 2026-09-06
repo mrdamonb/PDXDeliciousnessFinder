@@ -15,12 +15,46 @@ struct AddVisitView: View {
     var title: String?
     var onSave: (() -> Void)? = nil
 
+    /// Non-nil when this sheet is editing an existing visit rather than
+    /// logging a new one. `save()` branches on this to call
+    /// `VisitLogRepository.update` instead of `.save`, preserving `id` and
+    /// `createdAt` — an edit is a mutation, never a new row.
+    private let editingVisitLog: VisitLog?
+
     @State private var visitedAt: Date = .now
     @State private var note = ""
     @State private var isSaving = false
     @State private var saveError: AppError?
     @State private var hapticSuccessTrigger = 0
     @State private var menuLink: MenuLink?
+
+    init(
+        restaurant: Restaurant,
+        markVisited: Bool = false,
+        title: String? = nil,
+        onSave: (() -> Void)? = nil
+    ) {
+        self.restaurant = restaurant
+        self.markVisited = markVisited
+        self.title = title
+        self.onSave = onSave
+        self.editingVisitLog = nil
+    }
+
+    /// Edits an existing visit, reusing this form rather than a second UI.
+    /// `restaurant` is passed explicitly (not read from `visitLog.restaurant`)
+    /// because that relationship is optional on the model — callers only
+    /// reach this initializer once they already have both in hand (e.g. a
+    /// History row, which only renders once its restaurant is non-nil).
+    init(editing visitLog: VisitLog, restaurant: Restaurant, onSave: (() -> Void)? = nil) {
+        self.restaurant = restaurant
+        self.markVisited = false
+        self.title = "Edit Visit"
+        self.onSave = onSave
+        self.editingVisitLog = visitLog
+        _visitedAt = State(initialValue: visitLog.visitedAt)
+        _note = State(initialValue: visitLog.note ?? "")
+    }
 
     /// Wrapper so the browser is presented with `.sheet(item:)` — setting this to nil
     /// is the single way it closes, whether that came from SwiftUI or Safari's own
@@ -84,24 +118,38 @@ struct AddVisitView: View {
     }
 
     private func save() async {
-        guard let userId = appState.currentUser?.id else { return }
         isSaving = true
         defer { isSaving = false }
         do {
-            let visitLog = VisitLog(
-                restaurantId: restaurant.id,
-                userId: userId,
-                visitedAt: visitedAt,
-                note: note.isEmpty ? nil : note
-            )
-            visitLog.restaurant = restaurant
-            try appState.visitLogRepository.save(visitLog)
+            if let editingVisitLog {
+                // Editing never changes the restaurant's status — no
+                // markVisited path here, and restaurantId/createdAt are
+                // untouched, matching VisitLogRepository.update. No userId
+                // lookup here either: an edit mutates an already-owned row,
+                // so a stale/nil auth session must not block it.
+                editingVisitLog.visitedAt = visitedAt
+                editingVisitLog.note = note.isEmpty ? nil : note
+                try appState.visitLogRepository.update(editingVisitLog)
+            } else {
+                guard let userId = appState.currentUser?.id else {
+                    saveError = .unauthorized
+                    return
+                }
+                let visitLog = VisitLog(
+                    restaurantId: restaurant.id,
+                    userId: userId,
+                    visitedAt: visitedAt,
+                    note: note.isEmpty ? nil : note
+                )
+                visitLog.restaurant = restaurant
+                try appState.visitLogRepository.save(visitLog)
 
-            // Only a want_to_go restaurant is promoted by logging a visit — a
-            // favorite must never be downgraded to been_there (story 2.8).
-            if markVisited && restaurant.status == .wantToGo {
-                restaurant.status = .beenThere
-                try appState.restaurantRepository.update(restaurant)
+                // Only a want_to_go restaurant is promoted by logging a visit — a
+                // favorite must never be downgraded to been_there (story 2.8).
+                if markVisited && restaurant.status == .wantToGo {
+                    restaurant.status = .beenThere
+                    try appState.restaurantRepository.update(restaurant)
+                }
             }
 
             hapticSuccessTrigger += 1

@@ -15,11 +15,13 @@ private let historyTabTag = 2
 private enum HistorySheet: Identifiable {
     case pick
     case addVisit(Restaurant)
+    case editVisit(VisitLog)
 
     var id: String {
         switch self {
         case .pick: return "pick"
         case .addVisit(let restaurant): return "addVisit-\(restaurant.id)"
+        case .editVisit(let log): return "editVisit-\(log.id)"
         }
     }
 }
@@ -51,7 +53,7 @@ struct HistoryView: View {
         let hasAnyVisits = logs.contains { $0.restaurant != nil }
 
         NavigationStack {
-            content(sections: sections, hasAnyVisits: hasAnyVisits)
+            content(sections: sections, hasAnyVisits: hasAnyVisits, activeSheet: $activeSheet)
                 .navigationTitle("History")
                 .searchable(text: $searchText, prompt: "Restaurants and notes")
                 .autocorrectionDisabled()
@@ -76,6 +78,10 @@ struct HistoryView: View {
                 }
             case .addVisit(let restaurant):
                 AddVisitView(restaurant: restaurant, markVisited: true, title: "Add Visit")
+            case .editVisit(let log):
+                if let restaurant = log.restaurant {
+                    AddVisitView(editing: log, restaurant: restaurant)
+                }
             }
         }
         // Clear on an actual tab change, not on any disappearance. Pushing a
@@ -86,7 +92,11 @@ struct HistoryView: View {
     }
 
     @ViewBuilder
-    private func content(sections: [MonthSection], hasAnyVisits: Bool) -> some View {
+    private func content(
+        sections: [MonthSection],
+        hasAnyVisits: Bool,
+        activeSheet: Binding<HistorySheet?>
+    ) -> some View {
         if sections.isEmpty {
             // Tell "no visits yet" apart from "nothing matched your search".
             if hasAnyVisits {
@@ -102,6 +112,12 @@ struct HistoryView: View {
                             if let restaurant = log.restaurant {
                                 NavigationLink(destination: RestaurantDetailView(restaurant: restaurant)) {
                                     HistoryRowView(log: log, restaurant: restaurant)
+                                }
+                                .swipeActions {
+                                    Button("Edit") {
+                                        activeSheet.wrappedValue = .editVisit(log)
+                                    }
+                                    .tint(.blue)
                                 }
                             }
                         }
