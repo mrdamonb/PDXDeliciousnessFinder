@@ -4,14 +4,30 @@ import SwiftData
 /// Tab 2 in `HomeView`'s `TabView`.
 private let historyTabTag = 2
 
+/// The two steps of the History `+` flow, as one sheet rather than two chained
+/// ones. Switching `activeSheet` from `.pick` to `.addVisit` swaps the presented
+/// content in place — there is only ever one UIKit presentation to track, so
+/// there's no dismiss-then-present handoff for a later nested sheet (Add
+/// Visit's own "View menu" browser) to land on a stale presentation context.
+/// Two independent `.sheet` modifiers chaining via `onDismiss` looked like two
+/// sheets in sequence but still collapsed when View menu closed (device report,
+/// 2026-09-05) — this removes the chain instead of tuning its timing.
+private enum HistorySheet: Identifiable {
+    case pick
+    case addVisit(Restaurant)
+
+    var id: String {
+        switch self {
+        case .pick: return "pick"
+        case .addVisit(let restaurant): return "addVisit-\(restaurant.id)"
+        }
+    }
+}
+
 struct HistoryView: View {
     @Environment(AppState.self) private var appState
     @Query private var logs: [VisitLog]
-    @State private var showPickRestaurant = false
-    /// Set by the picker, consumed once its sheet has actually gone.
-    @State private var pickedRestaurant: Restaurant?
-    /// Drives the Add Visit sheet, presented only after the picker closed.
-    @State private var visitRestaurant: Restaurant?
+    @State private var activeSheet: HistorySheet?
     @State private var searchText = ""
 
     private let userId: UUID
@@ -42,26 +58,25 @@ struct HistoryView: View {
                 .textInputAutocapitalization(.never)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button { showPickRestaurant = true } label: {
+                        Button { activeSheet = .pick } label: {
                             Image(systemName: "plus")
                         }
                     }
                 }
         }
-        // Two sheets in sequence, never stacked: the picker closes first, then Add
-        // Visit opens. Presenting Add Visit from inside the picker made Safari the
-        // third sheet in a chain, and dismissing it collapsed all of them back to
-        // History (device report, 2026-09-02).
-        .sheet(isPresented: $showPickRestaurant, onDismiss: {
-            if let picked = pickedRestaurant {
-                pickedRestaurant = nil
-                visitRestaurant = picked
+        // One sheet, two contents: picking a restaurant swaps `activeSheet` to
+        // `.addVisit` in place rather than dismissing and presenting anew. See
+        // `HistorySheet` for why — this replaced a dismiss-then-present chain
+        // that still let Add Visit's Safari sheet collapse the whole flow.
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .pick:
+                PickRestaurantView(userId: userId) { restaurant in
+                    activeSheet = .addVisit(restaurant)
+                }
+            case .addVisit(let restaurant):
+                AddVisitView(restaurant: restaurant, markVisited: true, title: "Add Visit")
             }
-        }) {
-            PickRestaurantView(userId: userId) { pickedRestaurant = $0 }
-        }
-        .sheet(item: $visitRestaurant) { restaurant in
-            AddVisitView(restaurant: restaurant, markVisited: true, title: "Add Visit")
         }
         // Clear on an actual tab change, not on any disappearance. Pushing a
         // restaurant detail must not discard the query the user just typed.

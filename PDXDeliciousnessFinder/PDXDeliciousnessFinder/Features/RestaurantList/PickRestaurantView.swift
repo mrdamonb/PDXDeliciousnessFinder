@@ -9,8 +9,9 @@ struct PickRestaurantView: View {
     @State private var searchText = ""
     @State private var showAddRestaurant = false
 
-    /// Reports the choice and closes. The caller presents `AddVisitView` after this
-    /// sheet has gone, rather than stacking it on top — see the note on `body`.
+    /// Reports the choice. The caller (`HistoryView`) swaps this sheet's content to
+    /// `AddVisitView` in place — see the note on `body` — so this does not call
+    /// `dismiss()` itself; that would fight the parent's content swap.
     let onSelect: (Restaurant) -> Void
 
     init(userId: UUID, onSelect: @escaping (Restaurant) -> Void) {
@@ -21,15 +22,18 @@ struct PickRestaurantView: View {
         )
     }
 
-    /// Deliberately does **not** present `AddVisitView` itself.
+    /// Deliberately does **not** present `AddVisitView` itself, and does not
+    /// dismiss itself on selection either.
     ///
-    /// Doing so put three sheets on screen at once — History → picker → Add Visit →
-    /// Safari, once "View menu" was tapped — and closing the innermost sheet
-    /// collapsed the whole chain back to History, losing the half-entered visit.
-    /// Reported from device testing 2026-09-02. The working path elsewhere
-    /// (`RestaurantDetailView` → Add Visit → Safari) is only two deep, so the
-    /// picker hands the restaurant back and closes, and History presents Add Visit
-    /// once this sheet is gone.
+    /// The original design nested `AddVisitView` inside this sheet, putting three
+    /// sheets on screen at once — History → picker → Add Visit → Safari — once
+    /// "View menu" was tapped; closing the innermost sheet collapsed the whole
+    /// chain (device report, 2026-09-02). Swapping to "dismiss the picker, then
+    /// have History present Add Visit" fixed the sheet *count* but not the bug —
+    /// the two-step dismiss-then-present handoff still let Safari's dismissal
+    /// collapse everything (device report, 2026-09-05). `HistoryView` now hosts
+    /// one `.sheet(item:)` and swaps this view's content for `AddVisitView` in
+    /// place, so there is only ever one presentation for Safari to nest under.
     var body: some View {
         NavigationStack {
             content
@@ -73,7 +77,6 @@ struct PickRestaurantView: View {
             List(searched) { restaurant in
                 Button {
                     onSelect(restaurant)
-                    dismiss()
                 } label: {
                     RestaurantRowView(restaurant: restaurant)
                 }

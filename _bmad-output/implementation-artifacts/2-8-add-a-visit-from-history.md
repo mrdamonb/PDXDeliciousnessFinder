@@ -1,7 +1,7 @@
 # Story 2.8: Add a Visit from History
 
 **Epic:** 2 — Your Portland Food Journal
-**Status:** 🟡 Review — implemented, build green, not device-verified
+**Status:** ✅ Done — device-verified 2026-09-05
 **Effort:** Small–Medium (one new picker screen, one lifted predicate, no schema, no backend)
 **Story file written:** 2026-09-02, from `epics.md:611`
 
@@ -302,3 +302,39 @@ Build green after the fix. **Needs a re-test on device:** pick a restaurant, tap
 ### What this says about the review
 
 The review deferred *"two chained sheets, mixing `isPresented:` and `item:`"* to the device pass, noting `RestaurantDetailView` already chains three modifiers on one view as precedent. **That reasoning was wrong in an instructive way:** chaining several sheet modifiers on one view is fine, and is what the precedent showed. Nesting sheets three levels deep is a different thing entirely, and nothing in the diff made the depth visible — it only emerges by tracing the presentation chain from `HistoryView` outward. Worth checking presentation *depth*, not just modifier count, whenever a new sheet is added to something that is itself presented.
+
+---
+
+## Device Defect Recurred, 2026-09-05
+
+**Reported by Damon:** "tapped View menu, still closes everything." Confirmed on follow-up: Safari opens fine; tapping Safari's own **Done** button is what collapses the chain back to History.
+
+**First attempted fix (delay) did not work.** Assuming the two-sheet-in-sequence topology was sound and the remaining gap was timing — presenting `AddVisitView` synchronously inside the picker's `onDismiss` might attach it to a not-yet-torn-down presentation context — a 300ms delay was inserted before presenting `AddVisitView`. Device-tested: bug persisted unchanged. This rules out pure timing as the cause and points at the two-independent-`.sheet`-modifiers structure itself, not the gap between them.
+
+**Real fix: collapse two sheet modifiers into one.** `HistoryView` had two sibling modifiers on the same view — `.sheet(isPresented: $showPickRestaurant, ...)` and `.sheet(item: $visitRestaurant)`. Even presented sequentially rather than stacked, two separate `.sheet` modifiers on one view is a documented SwiftUI trouble spot: the framework's tracking of which presented view controller owns which content can get confused across a dismiss-then-present handoff between them, which likely explains why a `dismiss()` call originating from Safari's delegate callback (deep inside the second sheet's content) ended up collapsing further than intended.
+
+Replaced both with a single `HistorySheet` enum (`.pick` / `.addVisit(Restaurant)`) and one `.sheet(item: $activeSheet)`. Selecting a restaurant in `PickRestaurantView` no longer calls `dismiss()` — it only reports the choice via `onSelect`, and `HistoryView` swaps `activeSheet` from `.pick` to `.addVisit(restaurant)` in place. There is now exactly one UIKit presentation for the History `+` flow at any time, with `AddVisitView`'s own Safari sheet nesting one level under that single presentation — structurally identical to the already-verified `RestaurantDetailView` → Add Visit → Safari path, but arrived at by removing the second presentation event entirely rather than by spacing it out.
+
+**Trade-off changed:** picking a restaurant is no longer a close-then-reopen animation — it's an in-place content swap on the same presented sheet, since there's no separate dismiss/present cycle to animate. Likely feels snappier, but is unverified on device.
+
+`AddVisitView` and `RestaurantDetailView` remain untouched.
+
+Build green. **Needs a device re-test**, same checklist as before: pick a restaurant, tap View menu, tap Safari's Done, confirm the visit form (date + any typed note) is still there — plus a general check that the picker → Add Visit transition still feels right without the close/reopen animation.
+
+---
+
+## Device Defect, Actual Root Cause Found, 2026-09-05
+
+**Reported by Damon:** "Same thing. However if I swipe the menu down it closes properly and does not crash the visit." This is the finding that broke the case open — **swipe-to-dismiss works, tapping Safari's own Done button does not.** Everything above this point (sheet depth, delay, collapsing two `.sheet` modifiers into one) was chasing the presentation *topology*, which was never the actual bug. The topology fix was arguably still worth doing, but it could never have fixed this.
+
+**Real cause: `SafariView.swift`'s `SFSafariViewControllerDelegate` never dismissed the controller.** Per Apple's documented contract, `safariViewControllerDidFinish(_:)` fires when Done is tapped, and **the delegate is responsible for calling `dismiss(animated:)` on the controller** — tapping Done does not dismiss it automatically. The existing implementation only did `onFinish?()`, i.e. flipped the SwiftUI `menuLink` binding to `nil`, and relied on SwiftUI's `.sheet(item:)` to notice and dismiss the controller from the outside. Swipe-to-dismiss never went through this delegate at all — it's UIKit's own interactive transition — which is exactly why it worked while Done did not.
+
+The mismatch — Safari internally expecting an explicit dismiss call it never got, while SwiftUI's binding-driven dismiss fired independently — is what let the collapse cascade up through every sheet above it, not just Safari's own.
+
+**Fix:** call `controller.dismiss(animated: true) { onFinish?() }` inside `safariViewControllerDidFinish`, so the controller is dismissed the way its own API contract requires, and the SwiftUI binding only clears once that dismissal has actually completed — removing the race between "UIKit thinks it's still presented" and "SwiftUI thinks it's already gone."
+
+This is shared code (`SafariView.swift`, used only from `AddVisitView.swift:67`), and was never exercised by story 2.9's device pass hitting this exact combination (Done button, not swipe) — which is why it shipped originally as "device-verified."
+
+Build green. **Needs a device re-test**: pick a restaurant, tap View menu, tap Safari's **Done** button specifically (not swipe), confirm the visit form is still there. Also worth re-checking the `RestaurantDetailView` → Add Visit → Safari → Done path, since this is shared code and that path had the same latent bug, just never triggered during 2.9's pass.
+
+**Device-verified 2026-09-05:** Damon confirmed — "worked, closing properly now." Combined with his earlier "otherwise 2.8 works as intended" (covering the rest of the story's Verification checklist), this story is fully device-verified.
