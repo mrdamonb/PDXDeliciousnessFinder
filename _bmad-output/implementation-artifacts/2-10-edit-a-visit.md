@@ -166,3 +166,17 @@ Build first (`xcodebuild`, see `CLAUDE.md`). No test target exists, so a green b
 - Edit on device A while B is open and subscribed → B updates without foregrounding
 - Airplane mode: edit, re-enable, confirm the edit syncs and no duplicate appears
 - Confirm the restaurant's status is unchanged by editing a visit
+
+---
+
+## Device Verification, 2026-09-06
+
+**Partial pass.** Swipe → Edit on a History row now appears and works, confirmed by Damon on his real device (data intact — restaurants and visits unaffected).
+
+**Incident during first launch after this story's build:** the app froze completely and was killed by the iOS watchdog (`Thread 1: signal SIGKILL` in Xcode's console) shortly after being backgrounded and foregrounded again — which is exactly when `AppState.reconcileOnForeground()` runs, the code path this story changed most (`VisitLogRepository.pullFromRemote`'s new merge branch, plus the new realtime `.update` handler). Force-quitting and relaunching once resolved it; a second relaunch worked normally, and no data loss occurred.
+
+**Root cause not confirmed.** Static review of the changed code found no infinite loop or obvious deadlock — every loop in `pullFromRemote` and `rehydrateDanglingVisits` is bounded by the user's own visit/restaurant count, and all sync-layer classes (`AppState`, `VisitLogRepository`, `RestaurantRepository`, `RealtimeSubscriptions`) are `@MainActor`, ruling out a cross-actor `ModelContext` race between realtime and the pull.
+
+**Leading hypothesis:** the `VisitLog.updatedAt` schema migration (adding a non-optional column to an already-populated local store — see the code review finding this story already patched, and the matching `deferred-work.md` entry) took long enough on first launch to trip the OS watchdog, and either completed or nearly completed before being killed, succeeding cleanly on the next launch. This is a hypothesis, not a confirmed diagnosis — the debug session ended before a stack trace could be captured at the actual freeze point.
+
+**Follow-up needed:** if this recurs, capture the paused main-thread stack trace in Xcode at the moment of the freeze (see the request in this story's chat history for exact steps) rather than force-quitting immediately — that's the one piece of evidence that would turn the hypothesis above into a confirmed root cause.

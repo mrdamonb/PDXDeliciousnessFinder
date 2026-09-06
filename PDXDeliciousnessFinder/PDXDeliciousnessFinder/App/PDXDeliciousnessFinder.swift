@@ -30,8 +30,7 @@ private struct ContentRouter: View {
     var body: some View {
         Group {
             if appState.isLoading {
-                ProgressView()
-                    .controlSize(.large)
+                SplashView()
             } else if appState.currentUser == nil {
                 OnboardingView()
             } else {

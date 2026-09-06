@@ -58,7 +58,7 @@ development_status:
   2-7-history-tab-visit-journal: done          # shipped; was untracked until commit 67f73c6 (2026-09-01)
   2-8-add-a-visit-from-history: done  # device-verified 2026-09-05; root cause was SafariView never calling dismiss() on Done tap (shared code, also affects RestaurantDetailView's Add Visit)
   2-9-menu-at-the-point-of-logging: done  # device-verified 2026-09-02
-  2-10-edit-a-visit: review  # implemented + code-reviewed 2026-09-06 (spec-2-10-edit-a-visit.md), build green, not device-verified; migration applied live by hand (matches 2.9 precedent, not via db push — see spec for why)
+  2-10-edit-a-visit: review  # swipe-to-edit device-confirmed working 2026-09-06, no data loss; an unconfirmed watchdog freeze occurred on first post-build launch (resolved by relaunch) — see deferred-work.md; cross-device/offline checks still outstanding
   epic-2-retrospective: optional
 
   # ─── Epic 3: Find What to Eat Tonight ───────────────────────────────────────

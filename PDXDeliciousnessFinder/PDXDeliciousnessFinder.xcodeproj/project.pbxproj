@@ -66,6 +66,7 @@
 			membershipExceptions = (
 				App/AppState.swift,
 				App/PDXDeliciousnessFinder.swift,
+				App/SplashView.swift,
 				Assets.xcassets,
 				Core/AppError.swift,
 				Core/Network/DTOs/RestaurantDTO.swift,
