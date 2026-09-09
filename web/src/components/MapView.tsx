@@ -103,6 +103,11 @@ function PinMarker({ restaurant, selected }: { restaurant: Restaurant; selected:
 
 type Props = {
   filteredRestaurants: Restaurant[]
+  // Full, unfiltered list — used only to resolve `selected` below. A Journal
+  // row can point at a restaurant the active filters exclude from
+  // `filteredRestaurants`; without the full list that row's panel would
+  // silently fail to open (Journal ignores filterState entirely, per spec).
+  restaurants: Restaurant[]
   selectedId: string | null
   onSelectId: (id: string | null) => void
   onEdit: (id: string) => void
@@ -183,8 +188,12 @@ function LocateMeButton({ userLocation }: { userLocation: { lat: number; lng: nu
   )
 }
 
-export default function MapView({ filteredRestaurants, selectedId, onSelectId, onEdit, onDelete }: Props) {
-  const selected = filteredRestaurants.find((r) => r.id === selectedId) ?? null
+export default function MapView({ filteredRestaurants, restaurants, selectedId, onSelectId, onEdit, onDelete }: Props) {
+  // Pins stay scoped to filteredRestaurants (unchanged); only panel
+  // resolution reads from the full list, so filters keep narrowing what's on
+  // the map while still letting a Journal row for a filtered-out restaurant
+  // open its panel.
+  const selected = restaurants.find((r) => r.id === selectedId) ?? null
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
 
   useEffect(() => {

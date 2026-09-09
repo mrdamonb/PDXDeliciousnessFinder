@@ -18,6 +18,7 @@ import FilterPopover from './FilterPopover'
 import ListView from './ListView'
 import ImportModal from './ImportModal'
 import EditRestaurantModal from './EditRestaurantModal'
+import HistoryView from './HistoryView'
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false })
 
@@ -51,6 +52,16 @@ function ListIcon({ active }: { active: boolean }) {
   )
 }
 
+// Journal icon (open book) — third toggle segment, CAP-2
+function JournalIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={active ? '#1C1917' : '#6B6560'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v17H6.5A2.5 2.5 0 0 0 4 22.5v-17Z" />
+      <path d="M12 3h5.5A2.5 2.5 0 0 1 20 5.5v17A2.5 2.5 0 0 0 17.5 20H12" />
+    </svg>
+  )
+}
+
 // App logo mark — solid pin/marker silhouette, replaces the header wordmark.
 function LogoMark() {
   return (
@@ -68,7 +79,7 @@ type Props = {
 
 export default function HomeView({ restaurants, userEmail }: Props) {
   const router = useRouter()
-  const [view, setView] = useState<'map' | 'list'>('map')
+  const [view, setView] = useState<'map' | 'list' | 'journal'>('map')
   const [filterState, setFilterState] = useState<FilterState>(EMPTY_FILTER)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -156,6 +167,23 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                 aria-label="List view"
               >
                 <ListIcon active={view === 'list'} />
+              </button>
+              <button
+                onClick={() => setView('journal')}
+                style={{
+                  padding: '14px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: view === 'journal' ? 'white' : 'transparent',
+                  boxShadow: view === 'journal' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'all 0.15s',
+                }}
+                aria-label="Journal view"
+              >
+                <JournalIcon active={view === 'journal'} />
               </button>
             </div>
 
@@ -302,6 +330,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
           {view === 'map' && (
             <MapView
               filteredRestaurants={filteredRestaurants}
+              restaurants={restaurants}
               selectedId={selectedId}
               onSelectId={setSelectedId}
               onEdit={setEditingId}
@@ -335,14 +364,37 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             </div>
           )}
 
-          {/* Filter button — floats top-right, below header, in both views */}
-          <FilterButton
-            activeCount={activeCount}
-            onClick={() => setPopoverOpen((o) => !o)}
-          />
+          {view === 'journal' && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                paddingTop: `calc(${TOP_BAR_HEIGHT}px + env(safe-area-inset-top))`,
+                backgroundColor: '#F7F3EE',
+              }}
+            >
+              <HistoryView
+                onSelectRestaurant={(id) => {
+                  setSelectedId(id)
+                  setView('map')
+                }}
+              />
+            </div>
+          )}
+
+          {/* Filter button — floats top-right, below header. Journal ignores
+              filterState entirely (spec: it always shows the full unfiltered
+              visit set), so the button would sit there doing nothing — hide
+              it there rather than show a control with no effect. */}
+          {(view === 'map' || view === 'list') && (
+            <FilterButton
+              activeCount={activeCount}
+              onClick={() => setPopoverOpen((o) => !o)}
+            />
+          )}
 
           {/* Filter popover */}
-          {popoverOpen && (
+          {(view === 'map' || view === 'list') && popoverOpen && (
             <FilterPopover
               filterState={filterState}
               onFilterChange={setFilterState}

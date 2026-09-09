@@ -84,6 +84,68 @@ export async function getVisitLogs(restaurantId: string): Promise<VisitLog[]> {
   return (data ?? []) as VisitLog[]
 }
 
+export type EmbeddedRestaurant = {
+  id: string
+  name: string
+  neighborhood: string | null
+  venue_type: string | null
+  status: 'want_to_go' | 'been_there' | 'favorite'
+}
+
+export type VisitLogWithRestaurant = {
+  id: string
+  restaurant_id: string
+  visited_at: string
+  note: string | null
+  created_at: string
+  restaurant: EmbeddedRestaurant | null
+}
+
+// Raw shape of one row as PostgREST actually returns it, before we normalize
+// `restaurant`. A to-one embed (this table's FK to restaurants) resolves to a
+// single object today, but nothing guarantees PostgREST won't ever resolve it
+// as an array — and this is the only embedded-resource join anywhere in this
+// file, so there's no existing runtime guard to lean on. Typing the raw shape
+// as "object or array or null" and normalizing below means a shape change
+// degrades to an empty/filtered relation instead of an unchecked `undefined`
+// read three call sites away.
+type RawVisitLogRow = {
+  id: string
+  restaurant_id: string
+  visited_at: string
+  note: string | null
+  created_at: string
+  restaurant: EmbeddedRestaurant | EmbeddedRestaurant[] | null
+}
+
+function normalizeVisitLogRow(row: RawVisitLogRow): VisitLogWithRestaurant {
+  return {
+    ...row,
+    restaurant: Array.isArray(row.restaurant) ? (row.restaurant[0] ?? null) : row.restaurant,
+  }
+}
+
+// CAP-2: every visit_logs row for the signed-in user, across all restaurants,
+// for the Journal view. Ordered newest-first; HistoryView groups it further.
+// A visit whose restaurant relationship resolves to null (the join found
+// nothing — e.g. the restaurant was deleted) is left in the result here and
+// filtered out downstream by groupVisitsByMonth, per the iOS 3.5 precedent of
+// filtering before grouping rather than at the query layer.
+export async function getAllVisitLogs(): Promise<VisitLogWithRestaurant[]> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('visit_logs')
+    .select('id, restaurant_id, visited_at, note, created_at, restaurant:restaurants(id, name, neighborhood, venue_type, status)')
+    .eq('user_id', user.id)
+    .order('visited_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as unknown as RawVisitLogRow[]).map(normalizeVisitLogRow)
+}
+
 export type UpdateRestaurantData = {
   name: string
   venue_type: string | null
