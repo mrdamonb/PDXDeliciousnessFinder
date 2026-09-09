@@ -180,3 +180,14 @@ Build first (`xcodebuild`, see `CLAUDE.md`). No test target exists, so a green b
 **Leading hypothesis:** the `VisitLog.updatedAt` schema migration (adding a non-optional column to an already-populated local store — see the code review finding this story already patched, and the matching `deferred-work.md` entry) took long enough on first launch to trip the OS watchdog, and either completed or nearly completed before being killed, succeeding cleanly on the next launch. This is a hypothesis, not a confirmed diagnosis — the debug session ended before a stack trace could be captured at the actual freeze point.
 
 **Follow-up needed:** if this recurs, capture the paused main-thread stack trace in Xcode at the moment of the freeze (see the request in this story's chat history for exact steps) rather than force-quitting immediately — that's the one piece of evidence that would turn the hypothesis above into a confirmed root cause.
+
+### Single-device checks, confirmed 2026-09-06
+
+- ✅ "View menu" from inside the **edit** sheet, dismissed via both Safari's Done button and swipe-down — edit sheet survives with unsaved text intact either way
+- ✅ Edited visit keeps its position in the month grouping, no duplicate
+- ✅ Restaurant status unchanged by editing a visit
+- ✅ Airplane mode: edit while offline, reconnect, edit syncs with no duplicate
+
+### Cross-device checks — deliberately deferred, not failed
+
+Damon's call: the two-device / conflict-resolution checks (live update while B is open, foreground-pull convergence, and the genuine two-device conflict scenario) will be verified once the web app reaches feature parity with iOS, so the web app itself can serve as "device B" rather than needing a second iOS device or simulator. Same approach already taken for story 1.5's cross-device check. Story stays in `review`, not `done`, until that happens — this is the one remaining gap against the story's own acceptance criteria.

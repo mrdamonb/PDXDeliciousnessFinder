@@ -84,13 +84,13 @@ story_key: '2-10-edit-a-visit'
 - `xcodebuild -scheme PDXDeliciousnessFinder -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build` -- expected: `** BUILD SUCCEEDED **`, zero errors.
 
 **Manual checks (no test target exists in this repo):**
-- Swipe → Edit → pre-filled correctly; change note, save, row updates immediately.
-- Tap "View menu" from the edit sheet, dismiss via both Safari's Done button and swipe-down — edit sheet still present with unsaved text intact either way.
-- Edit on device A, confirm device B updates live (open+subscribed) and after a foreground pull (backgrounded).
-- **Genuine conflict, not just forward propagation:** edit the same visit on device B, then before B's edit finishes pushing, edit it differently on device A and let A's push land first. Confirm both devices converge on whichever edit actually has the later `updated_at` — not just on "whatever arrived last." (Every other check here only exercises A→B forward propagation, which would still pass even if the `updated_at` comparison were silently broken or removed.)
-- Airplane mode: edit, reconnect, confirm sync and no duplicate.
-- Confirm restaurant status is unchanged after editing one of its visits.
-- **Launch over an existing install with real visits already logged** (not a clean reinstall) — confirms the new non-optional `VisitLog.updatedAt` property migrates the local SwiftData store safely rather than crashing at launch.
+- ✅ Swipe → Edit → pre-filled correctly; change note, save, row updates immediately. (2026-09-06)
+- ✅ Tap "View menu" from the edit sheet, dismiss via both Safari's Done button and swipe-down — edit sheet still present with unsaved text intact either way. (2026-09-06)
+- ✅ Airplane mode: edit, reconnect, confirm sync and no duplicate. (2026-09-06)
+- ✅ Confirm restaurant status is unchanged after editing one of its visits. (2026-09-06)
+- ✅ **Launch over an existing install with real visits already logged** (not a clean reinstall) — confirmed via a real (if bumpy) device launch: a watchdog-killed freeze occurred on first launch, but data was intact and the migration succeeded on relaunch. See `2-10-edit-a-visit.md`'s Device Verification section — this is flagged as an unconfirmed-root-cause risk, not a clean pass.
+- ⏸ **Deferred, not failed:** Edit on device A, confirm device B updates live (open+subscribed) and after a foreground pull (backgrounded).
+- ⏸ **Deferred, not failed — genuine conflict, not just forward propagation:** edit the same visit on device B, then before B's edit finishes pushing, edit it differently on device A and let A's push land first. Confirm both devices converge on whichever edit actually has the later `updated_at` — not just on "whatever arrived last." Damon's call: verify once the web app reaches feature parity with iOS, using web as "device B" rather than a second iOS device/simulator (same approach as story 1.5).
 
 ## Suggested Review Order
 
