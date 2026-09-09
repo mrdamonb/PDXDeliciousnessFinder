@@ -1,5 +1,7 @@
 'use client'
 
+import { TOP_BAR_HEIGHT } from './HomeView'
+
 type Props = {
   activeCount: number
   onClick: () => void
@@ -11,7 +13,8 @@ export default function FilterButton({ activeCount, onClick }: Props) {
       onClick={onClick}
       style={{
         position: 'absolute',
-        top: 'calc(60px + env(safe-area-inset-top))',
+        // Header + search row, plus an 8px gap.
+        top: `calc(${TOP_BAR_HEIGHT + 8}px + env(safe-area-inset-top))`,
         right: 16,
         zIndex: 20,
         display: 'flex',

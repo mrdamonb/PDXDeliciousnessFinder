@@ -11,9 +11,11 @@ type Props = {
   onSelect: (id: string) => void
   filtersActive: boolean
   onClearFilters: () => void
+  query: string
+  onClearSearch: () => void
 }
 
-export default function ListView({ restaurants, onSelect, filtersActive, onClearFilters }: Props) {
+export default function ListView({ restaurants, onSelect, filtersActive, onClearFilters, query, onClearSearch }: Props) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('alpha')
 
   const sorted = [...restaurants].sort((a, b) =>
@@ -23,6 +25,8 @@ export default function ListView({ restaurants, onSelect, filtersActive, onClear
   )
 
   if (sorted.length === 0) {
+    const trimmedQuery = query.trim()
+    const searchActive = trimmedQuery.length > 0
     return (
       <div
         style={{
@@ -35,22 +39,44 @@ export default function ListView({ restaurants, onSelect, filtersActive, onClear
           color: '#6B6560',
         }}
       >
-        <p style={{ fontSize: 15, fontWeight: 500 }}>No places match these filters</p>
-        {filtersActive && (
-          <button
-            onClick={onClearFilters}
-            style={{
-              background: 'none',
-              border: '1px solid #D1C9C0',
-              borderRadius: 999,
-              padding: '6px 16px',
-              fontSize: 13,
-              color: '#6B6560',
-              cursor: 'pointer',
-            }}
-          >
-            Clear filters
-          </button>
+        {searchActive ? (
+          <>
+            <p style={{ fontSize: 15, fontWeight: 500 }}>No results for &ldquo;{trimmedQuery}&rdquo;</p>
+            <button
+              onClick={onClearSearch}
+              style={{
+                background: 'none',
+                border: '1px solid #D1C9C0',
+                borderRadius: 999,
+                padding: '6px 16px',
+                fontSize: 13,
+                color: '#6B6560',
+                cursor: 'pointer',
+              }}
+            >
+              Clear search
+            </button>
+          </>
+        ) : (
+          <>
+            <p style={{ fontSize: 15, fontWeight: 500 }}>No places match these filters</p>
+            {filtersActive && (
+              <button
+                onClick={onClearFilters}
+                style={{
+                  background: 'none',
+                  border: '1px solid #D1C9C0',
+                  borderRadius: 999,
+                  padding: '6px 16px',
+                  fontSize: 13,
+                  color: '#6B6560',
+                  cursor: 'pointer',
+                }}
+              >
+                Clear filters
+              </button>
+            )}
+          </>
         )}
       </div>
     )

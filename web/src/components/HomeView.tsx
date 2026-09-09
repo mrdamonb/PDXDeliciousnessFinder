@@ -21,6 +21,13 @@ import EditRestaurantModal from './EditRestaurantModal'
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false })
 
+// Header is 52px tall; the search row below it is 56px. Content below both
+// (list padding, floating filter button, filter popover) reads off these
+// exported constants so it stays in sync if either row's height ever changes.
+export const HEADER_HEIGHT = 52
+export const SEARCH_ROW_HEIGHT = 56
+export const TOP_BAR_HEIGHT = HEADER_HEIGHT + SEARCH_ROW_HEIGHT
+
 // Map icon (grid of 4 squares)
 function MapIcon({ active }: { active: boolean }) {
   return (
@@ -65,7 +72,11 @@ export default function HomeView({ restaurants, userEmail }: Props) {
   const cuisineSuggestions = Array.from(new Set(restaurants.map((r) => r.cuisine).filter((c): c is string => !!c))).sort()
 
   function clearFilters() {
-    setFilterState(EMPTY_FILTER)
+    setFilterState((prev) => ({ ...EMPTY_FILTER, query: prev.query }))
+  }
+
+  function clearSearch() {
+    setFilterState((prev) => ({ ...prev, query: '' }))
   }
 
   return (
@@ -172,6 +183,68 @@ export default function HomeView({ restaurants, userEmail }: Props) {
         </div>
       </header>
 
+      {/* Search row — new row below the header, not inside it (Ask-First zone) */}
+      <div
+        className="absolute left-0 right-0 backdrop-blur-md"
+        style={{
+          top: `calc(${HEADER_HEIGHT}px + env(safe-area-inset-top))`,
+          zIndex: 45,
+          height: SEARCH_ROW_HEIGHT,
+          backgroundColor: 'rgba(247, 243, 238, 0.88)',
+          borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+        }}
+      >
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input
+            type="text"
+            value={filterState.query}
+            onChange={(e) => setFilterState((prev) => ({ ...prev, query: e.target.value }))}
+            placeholder="Search your places…"
+            aria-label="Search your places"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '10px 36px 10px 14px',
+              borderRadius: 10,
+              border: '1px solid #D1C9C0',
+              backgroundColor: 'white',
+              fontSize: 14,
+              color: '#1C1917',
+              outline: 'none',
+            }}
+          />
+          {filterState.query.trim() && (
+            <button
+              onClick={clearSearch}
+              aria-label="Clear search"
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 22,
+                height: 22,
+                borderRadius: 999,
+                border: 'none',
+                backgroundColor: '#EDE8E3',
+                color: '#6B6560',
+                fontSize: 13,
+                lineHeight: 1,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
       {modalOpen && (
         <AddRestaurantModal
           onClose={() => setModalOpen(false)}
@@ -239,7 +312,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                paddingTop: 'calc(52px + env(safe-area-inset-top))',
+                paddingTop: `calc(${TOP_BAR_HEIGHT}px + env(safe-area-inset-top))`,
                 backgroundColor: '#F7F3EE',
               }}
             >
@@ -251,6 +324,8 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                 }}
                 filtersActive={activeCount > 0}
                 onClearFilters={clearFilters}
+                query={filterState.query}
+                onClearSearch={clearSearch}
               />
             </div>
           )}
@@ -398,23 +473,47 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                   textAlign: 'center',
                 }}
               >
-                <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1917', marginBottom: 10 }}>
-                  No places match these filters
-                </p>
-                <button
-                  onClick={clearFilters}
-                  style={{
-                    background: 'none',
-                    border: '1px solid #D1C9C0',
-                    borderRadius: 999,
-                    padding: '6px 16px',
-                    fontSize: 13,
-                    color: '#6B6560',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Clear filters
-                </button>
+                {filterState.query.trim() ? (
+                  <>
+                    <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1917', marginBottom: 10 }}>
+                      No results for &ldquo;{filterState.query.trim()}&rdquo;
+                    </p>
+                    <button
+                      onClick={clearSearch}
+                      style={{
+                        background: 'none',
+                        border: '1px solid #D1C9C0',
+                        borderRadius: 999,
+                        padding: '6px 16px',
+                        fontSize: 13,
+                        color: '#6B6560',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear search
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1917', marginBottom: 10 }}>
+                      No places match these filters
+                    </p>
+                    <button
+                      onClick={clearFilters}
+                      style={{
+                        background: 'none',
+                        border: '1px solid #D1C9C0',
+                        borderRadius: 999,
+                        padding: '6px 16px',
+                        fontSize: 13,
+                        color: '#6B6560',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear filters
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}

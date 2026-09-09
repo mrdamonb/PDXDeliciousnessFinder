@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import type { FilterState, FilterOptions } from '@/lib/filters'
+import { TOP_BAR_HEIGHT } from './HomeView'
 
 const STATUS_OPTIONS = [
   { value: 'want_to_go', label: 'Want to Go', activeColor: '#F59E0B' },
@@ -49,14 +50,16 @@ export default function FilterPopover({ filterState, onFilterChange, filterOptio
     }
   }, [onClose])
 
-  function toggle(dimension: keyof FilterState, value: string) {
+  function toggle(dimension: 'status' | 'venueType' | 'neighborhood' | 'cuisine' | 'price', value: string) {
     const current = filterState[dimension]
     const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value]
     onFilterChange({ ...filterState, [dimension]: next })
   }
 
   function clearAll() {
-    onFilterChange({ status: [], venueType: [], neighborhood: [], cuisine: [], price: [] })
+    // Clearing filters must not clear the search query — query ANDs with
+    // filters and is cleared only by its own "Clear search" action.
+    onFilterChange({ ...filterState, status: [], venueType: [], neighborhood: [], cuisine: [], price: [] })
   }
 
   return (
@@ -64,7 +67,8 @@ export default function FilterPopover({ filterState, onFilterChange, filterOptio
       ref={ref}
       style={{
         position: 'absolute',
-        top: 52,
+        // Header + search row.
+        top: TOP_BAR_HEIGHT,
         left: 16,
         right: 16,
         zIndex: 40,

@@ -1,0 +1,83 @@
+- id: "1"
+  title: Search your own restaurant list
+  description: >-
+    Deliver CAP-1: a query field that narrows the list and the map together,
+    ANDed with the existing filters. Extends the filters.ts pipeline rather
+    than adding a parallel path.
+  invoke_dev_with: >-
+    Key files and verification commands are in build-plan.md; the full
+    scenario table is in edge-cases.md. Match the iOS matching rules exactly
+    (name, cuisine, neighborhood; case- and diacritic-insensitive; substring,
+    not prefix). Two traps carried over from iOS 3.5 are recorded at the
+    bottom of parity-audit.md — read them before writing the empty state or
+    deciding what happens to the query when the user opens a restaurant and
+    comes back.
+
+- id: "2"
+  title: Replace the header wordmark with the app logo
+  description: >-
+    Swap the truncating "PDX Deliciousness Finder" title for the app's pin
+    logo, buying back the header width that story 3's third segment will
+    need. No other header change.
+  spec_checkpoint: true
+  invoke_dev_with: >-
+    Redraw the pin silhouette as an inline SVG component alongside the
+    existing MapIcon and ListIcon in HomeView.tsx — do not ship the PNG.
+    The source asset (Assets.xcassets/Logo.imageset/Logo.png) is unusable
+    as-is: near-white background against the app's warm #F7F3EE, artwork
+    filling only 48% of its canvas, and the wrong orange. Render the pin in
+    #C2410C, Damon's decision. The "PDX" lettering and cutlery inside the
+    pin will not survive at header size; the silhouette is the part that
+    reads. web/ has no public/ directory today. This header has two prior
+    repaint regressions (c096d6a, c036895) — this story is small and
+    isolated on purpose, so keep it that way.
+
+- id: "3"
+  title: The visit journal, as a third segment in the header toggle
+  description: >-
+    Deliver CAP-2: every visit across all restaurants in one
+    reverse-chronological journal, reached by a third button in the existing
+    Map/List toggle. Switching keeps the active filters, as Map and List
+    already do.
+  invoke_dev_with: >-
+    Damon's framing, and it drives the design: this is a decision surface,
+    not an archive. It answers "where have I been recently and what did I
+    have?" when he is deciding where to go tonight — so recency and what was
+    eaten must be legible without opening a row. Entries whose restaurant
+    cannot be resolved are filtered out BEFORE grouping, or a month header
+    renders with nothing beneath it; that was an explicit iOS acceptance
+    criterion and the iOS review caught it violated anyway. Add
+    getAllVisitLogs() per build-plan.md.
+
+- id: "4"
+  title: Add a visit from the journal
+  description: >-
+    Deliver CAP-3: pick a restaurant from within the journal and log a visit
+    there, instead of finding it in the list first. Reuses story 1's search
+    as the picker.
+  invoke_dev_with: >-
+    The inline log form in RestaurantPanel.tsx is the model to follow.
+    logVisit already promotes want_to_go to been_there and that behaviour is
+    correct — do not change it (it is a constraint in SPEC.md). The new
+    entry must appear in the journal immediately, without a reload.
+
+- id: "5"
+  title: Edit a visit
+  description: >-
+    Deliver CAP-4: correct a logged visit's date and note from the journal,
+    ending write-once visits on the web the way iOS 2.10 ended them on the
+    phone. This is the story that unblocks iOS 2.10's deferred cross-device
+    verification.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: >-
+    The constraint that bites silently: a web edit MUST write
+    visit_logs.updated_at. iOS resolves conflicts on
+    dto.updatedAt > existing.updatedAt, and the visit select at
+    actions.ts:97 omits the column today, so an edit that skips it wins or
+    loses at random. Mirror iOS 2.10's semantics exactly — preserve id and
+    created_at, never touch the restaurant's status, no delete-from-journal.
+    Story 2.10's own spec file carries the iOS side. After this lands, the
+    deferred check is: edit the same visit on web and on iOS before either
+    syncs, and confirm both converge on the later updated_at — a genuine
+    conflict, not just forward propagation.
