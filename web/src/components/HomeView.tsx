@@ -51,6 +51,16 @@ function ListIcon({ active }: { active: boolean }) {
   )
 }
 
+// App logo mark — solid pin/marker silhouette, replaces the header wordmark.
+function LogoMark() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#C2410C" role="img" aria-label="PDX Deliciousness Finder">
+      <title>PDX Deliciousness Finder</title>
+      <path d="M12 2C7.86 2 4.5 5.36 4.5 9.5c0 5.5 6.5 12 7.02 12.53a.66.66 0 0 0 .96 0C13 21.5 19.5 15 19.5 9.5 19.5 5.36 16.14 2 12 2z" />
+    </svg>
+  )
+}
+
 type Props = {
   restaurants: Restaurant[]
   userEmail: string
@@ -99,12 +109,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
           style={{ height: 52 }}
         >
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-            <span
-              className="font-semibold text-base"
-              style={{ color: '#C2410C', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-            >
-              PDX Deliciousness Finder
-            </span>
+            <LogoMark />
           </div>
 
           <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
