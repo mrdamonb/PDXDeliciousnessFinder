@@ -99,6 +99,14 @@ final class VisitLogRepository: VisitLogRepositoryProtocol {
         // exactly like the bug this story fixes, and is invisible from the UI.
         try modelContext.save()
 
+        // A local visit no longer present in the remote result set was deleted
+        // elsewhere. The realtime delete handler catches this live, but a
+        // device that wasn't connected at the moment of the delete never sees
+        // that event and otherwise holds the row forever — this pass is what
+        // a cold-start/foreground pull needs to catch up on a missed delete.
+        try reconcileDeletedVisits(userId: userId, remoteIds: Set(dtos.map(\.id)))
+        try modelContext.save()
+
         // A visit inserted (here or via realtime) before its restaurant arrived
         // is left with a nil relationship; repair any that are now resolvable.
         try rehydrateDanglingVisits(userId: userId, using: restaurantsById)
@@ -119,6 +127,21 @@ final class VisitLogRepository: VisitLogRepositoryProtocol {
     private func restaurantLookup() throws -> [UUID: Restaurant] {
         let restaurants = try modelContext.fetch(FetchDescriptor<Restaurant>())
         return Dictionary(restaurants.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    }
+
+    /// Deletes local visits for this user that the remote pull no longer
+    /// returned. `hasPendingOperation` guards a visit whose own insert or
+    /// delete hasn't flushed yet — the same guard the realtime delete handler
+    /// uses (`RealtimeSubscriptions.handleVisitLogDelete`) — so an unsynced
+    /// local write is never mistaken for a remote deletion.
+    private func reconcileDeletedVisits(userId: UUID, remoteIds: Set<UUID>) throws {
+        let descriptor = FetchDescriptor<VisitLog>(
+            predicate: #Predicate { $0.userId == userId }
+        )
+        for visitLog in try modelContext.fetch(descriptor) where !remoteIds.contains(visitLog.id) {
+            guard !syncQueue.hasPendingOperation(for: visitLog.id) else { continue }
+            modelContext.delete(visitLog)
+        }
     }
 
     private func rehydrateDanglingVisits(
