@@ -189,28 +189,30 @@ export default function HomeView({ restaurants, userEmail }: Props) {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <UserMenu email={userEmail} />
-              <button
-                onClick={() => setModalOpen(true)}
-                disabled={modalOpen}
-                aria-label="Add restaurant"
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 999,
-                  border: 'none',
-                  backgroundColor: '#C2410C',
-                  color: '#fff',
-                  fontSize: 20,
-                  lineHeight: 1,
-                  cursor: modalOpen ? 'default' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                +
-              </button>
+              {view !== 'journal' && (
+                <button
+                  onClick={() => setModalOpen(true)}
+                  disabled={modalOpen}
+                  aria-label="Add restaurant"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 999,
+                    border: 'none',
+                    backgroundColor: '#C2410C',
+                    color: '#fff',
+                    fontSize: 20,
+                    lineHeight: 1,
+                    cursor: modalOpen ? 'default' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  +
+                </button>
+              )}
             </div>
           </div>
         </div>
