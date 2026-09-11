@@ -48,7 +48,7 @@ development_status:
   epic-1-retrospective: optional
 
   # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────
-  epic-2: in-progress
+  epic-2: done  # Damon's call, 2026-09-11 — all stories done
   2-1-add-a-restaurant-manually: done
   2-2-view-your-restaurant-list: done
   2-3-edit-a-restaurants-details: done
