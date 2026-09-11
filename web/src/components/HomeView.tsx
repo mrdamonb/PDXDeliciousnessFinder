@@ -374,6 +374,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               }}
             >
               <HistoryView
+                restaurants={restaurants}
                 onSelectRestaurant={(id) => {
                   setSelectedId(id)
                   setView('map')
