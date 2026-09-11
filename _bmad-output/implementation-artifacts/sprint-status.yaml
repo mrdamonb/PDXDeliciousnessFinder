@@ -39,7 +39,7 @@ story_location: "_bmad-output/implementation-artifacts"
 development_status:
 
   # ─── Epic 1: Signed In & Ready ──────────────────────────────────────────────
-  epic-1: in-progress
+  epic-1: done  # Damon's call, 2026-09-11 — all stories done, cross-device sync device-verified
   1-1-app-foundation-and-email-sign-in: done
   1-2-swiftdata-core-storage-layer: done
   1-3-offline-write-queue-outbound-sync: done
