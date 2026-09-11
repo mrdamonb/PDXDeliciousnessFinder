@@ -43,8 +43,8 @@ development_status:
   1-1-app-foundation-and-email-sign-in: done
   1-2-swiftdata-core-storage-layer: done
   1-3-offline-write-queue-outbound-sync: done
-  1-4-realtime-inbound-sync-multi-device: done  # was silently broken (decoder/CodingKeys clash); repaired by 1-5 on 2026-09-02; a second decode bug (visited_at date-format mismatch, see 1-5 line below) found on real device 2026-09-11 while verifying story 4 in prod, now also fixed
-  1-5-visit-history-survives-reinstall: review  # reviewed + patched 2026-09-02, build green; History now @Query-backed; device-tested 2026-09-11 (Damon added a visit on web) exposed that VisitLogDTO.visitedAt decoded via the shared .iso8601 strategy, which throws on visited_at's bare `date` (no time) format and aborted the whole [VisitLogDTO] pull -- meaning no visit had ever successfully pulled from remote on this device. Fixed with a dedicated date-only formatter for that field (both encode and decode). Still pending a fresh device verification pass after this fix.
+  1-4-realtime-inbound-sync-multi-device: done  # was silently broken (decoder/CodingKeys clash); repaired by 1-5 on 2026-09-02; a second decode bug (visited_at date-format mismatch, see 1-5 line below) found on real device 2026-09-11 while verifying story 4 in prod, fixed and device-verified same day — Damon added a visit on web and confirmed it now appears on iOS
+  1-5-visit-history-survives-reinstall: done  # Damon's call, 2026-09-11. Device-tested 2026-09-11 exposed that VisitLogDTO.visitedAt decoded via the shared .iso8601 strategy, which throws on visited_at's bare `date` (no time) format and aborted the whole [VisitLogDTO] pull — meaning no visit had ever successfully pulled from remote on this device. Fixed with a dedicated date-only formatter for that field (both encode and decode), rebuilt, and Damon confirmed a web-added visit now shows up on iOS. Reinstall-survival itself (this story's original scope) was already device-confirmed 2026-09-02; cross-device sync is what was outstanding.
   epic-1-retrospective: optional
 
   # ─── Epic 2: Your Portland Food Journal ─────────────────────────────────────
