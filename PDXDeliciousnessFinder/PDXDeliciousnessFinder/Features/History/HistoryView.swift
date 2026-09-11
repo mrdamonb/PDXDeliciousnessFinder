@@ -31,6 +31,8 @@ struct HistoryView: View {
     @Query private var logs: [VisitLog]
     @State private var activeSheet: HistorySheet?
     @State private var searchText = ""
+    @State private var visitPendingDeletion: VisitLog?
+    @State private var deleteError: AppError?
 
     private let userId: UUID
 
@@ -89,6 +91,42 @@ struct HistoryView: View {
         .onChange(of: appState.selectedTab) { _, tab in
             if tab != historyTabTag { searchText = "" }
         }
+        .confirmationDialog(
+            visitPendingDeletion.map { "Delete visit on \($0.visitedAt.formatted(.dateTime.month(.abbreviated).day()))?" } ?? "Delete this visit?",
+            isPresented: Binding(
+                get: { visitPendingDeletion != nil },
+                set: { isPresented in
+                    if !isPresented { visitPendingDeletion = nil }
+                }
+            ),
+            titleVisibility: .visible,
+            presenting: visitPendingDeletion
+        ) { log in
+            Button("Delete", role: .destructive) {
+                do {
+                    try appState.visitLogRepository.delete(log)
+                } catch {
+                    deleteError = .persistence(underlying: error)
+                }
+                visitPendingDeletion = nil
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("This will permanently remove this visit. The restaurant's status will not change.")
+        }
+        .alert(
+            "Couldn't Delete Visit",
+            isPresented: Binding(
+                get: { deleteError != nil },
+                set: { isPresented in
+                    if !isPresented { deleteError = nil }
+                }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(deleteError?.localizedDescription ?? "An unknown error occurred.")
+        }
     }
 
     @ViewBuilder
@@ -118,6 +156,12 @@ struct HistoryView: View {
                                         activeSheet.wrappedValue = .editVisit(log)
                                     }
                                     .tint(.blue)
+
+                                    Button(role: .destructive) {
+                                        visitPendingDeletion = log
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
                             }
                         }

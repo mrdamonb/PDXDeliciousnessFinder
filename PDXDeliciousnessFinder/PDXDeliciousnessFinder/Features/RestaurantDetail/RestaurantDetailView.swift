@@ -11,6 +11,7 @@ struct RestaurantDetailView: View {
     @State private var showAddVisitSheet = false
     @State private var showMarkVisitedSheet = false
     @State private var showDeleteConfirmation = false
+    @State private var visitPendingDeletion: VisitLog?
     @State private var hapticSuccessTrigger = 0
 
     var body: some View {
@@ -140,6 +141,13 @@ struct RestaurantDetailView: View {
                             }
                         }
                         .padding(.vertical, 2)
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                visitPendingDeletion = visit
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
             }
@@ -196,6 +204,27 @@ struct RestaurantDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will permanently remove the restaurant and all its visit logs.")
+        }
+        .confirmationDialog(
+            visitPendingDeletion.map { "Delete visit on \($0.visitedAt.formatted(date: .long, time: .omitted))?" } ?? "Delete this visit?",
+            isPresented: Binding(
+                get: { visitPendingDeletion != nil },
+                set: { isPresented in
+                    if !isPresented { visitPendingDeletion = nil }
+                }
+            ),
+            titleVisibility: .visible,
+            presenting: visitPendingDeletion
+        ) { visit in
+            Button("Delete", role: .destructive) {
+                Task {
+                    _ = await viewModel.deleteVisit(visit, repo: appState.visitLogRepository)
+                    visitPendingDeletion = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("This will permanently remove this visit. The restaurant's status will not change.")
         }
     }
 }

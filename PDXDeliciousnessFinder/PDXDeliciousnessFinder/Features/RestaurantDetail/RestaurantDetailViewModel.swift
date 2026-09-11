@@ -66,6 +66,21 @@ final class RestaurantDetailViewModel {
 
     // MARK: - Visit log (Story 2.5)
 
+    /// Deletes a single visit log. Never touches the restaurant's `status`.
+    /// Mirrors `delete(restaurant:repo:)`'s `actionState`-wrapping and `Bool`
+    /// return shape; success/failure is surfaced to the view via `actionState`.
+    func deleteVisit(_ visit: VisitLog, repo: any VisitLogRepositoryProtocol) async -> Bool {
+        actionState = .loading
+        do {
+            try repo.delete(visit)
+            actionState = .loaded(())
+            return true
+        } catch {
+            actionState = .error(.persistence(underlying: error))
+            return false
+        }
+    }
+
     func addVisit(
         restaurant: Restaurant,
         visitedAt: Date,
