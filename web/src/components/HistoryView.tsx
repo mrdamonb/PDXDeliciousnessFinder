@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Utensils, Wine, Beer, Store } from 'lucide-react'
+import { Utensils, Wine, Beer, Store, Pencil } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { getAllVisitLogs, type VisitLogWithRestaurant, type VisitLog } from '@/app/actions'
 import { groupVisitsByMonth, type VisitLogWithRestaurantResolved } from '@/lib/historyGrouping'
 import type { Restaurant } from '@/lib/supabase/restaurants'
 import AddVisitModal from './AddVisitModal'
+import EditVisitModal from './EditVisitModal'
 
 const VENUE_ICONS: Record<string, LucideIcon> = {
   restaurant: Utensils,
@@ -41,6 +42,8 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
   // CAP-3: the "+" picker/log modal lives in HistoryView's own content, not
   // HomeView's shared header/toggle bar.
   const [pickerOpen, setPickerOpen] = useState(false)
+  // CAP-4: the visit currently open in EditVisitModal, or null when closed.
+  const [editingLog, setEditingLog] = useState<VisitLogWithRestaurantResolved | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -72,6 +75,7 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
       visited_at: visit.visited_at,
       note: visit.note,
       created_at: visit.created_at,
+      updated_at: visit.updated_at,
       restaurant: {
         id: restaurant.id,
         name: restaurant.name,
@@ -85,6 +89,23 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
       return updated.sort((a, b) => b.visited_at.localeCompare(a.visited_at))
     })
     if (statusChanged) router.refresh()
+  }
+
+  // CAP-4: splice an edited visit into local state the same way handleSaved
+  // does for a new one -- no refetch. groupVisitsByMonth re-derives sections
+  // from `logs` on every render, so a date edit that crosses a month
+  // boundary regroups automatically, and an emptied old header disappears
+  // the same way.
+  function handleVisitUpdated(visit: VisitLog) {
+    setLogs((prev) =>
+      (prev ?? [])
+        .map((log) => (log.id === visit.id ? { ...log, ...visit } : log))
+        .sort((a, b) => b.visited_at.localeCompare(a.visited_at))
+    )
+  }
+
+  function handleVisitDeleted(id: string) {
+    setLogs((prev) => (prev ?? []).filter((log) => log.id !== id))
   }
 
   let content: React.ReactNode
@@ -182,7 +203,7 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
                 {section.title}
               </div>
               {section.entries.map((log) => (
-                <JournalRow key={log.id} log={log} onSelect={onSelectRestaurant} />
+                <JournalRow key={log.id} log={log} onSelect={onSelectRestaurant} onEdit={setEditingLog} />
               ))}
             </div>
           ))}
@@ -241,6 +262,15 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
           onSaved={handleSaved}
         />
       )}
+
+      {editingLog && (
+        <EditVisitModal
+          log={editingLog}
+          onClose={() => setEditingLog(null)}
+          onUpdated={handleVisitUpdated}
+          onDeleted={handleVisitDeleted}
+        />
+      )}
     </>
   )
 }
@@ -248,9 +278,11 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
 function JournalRow({
   log,
   onSelect,
+  onEdit,
 }: {
   log: VisitLogWithRestaurantResolved
   onSelect: (id: string) => void
+  onEdit: (log: VisitLogWithRestaurantResolved) => void
 }) {
   const restaurant = log.restaurant
   const Icon = VENUE_ICONS[restaurant.venue_type ?? ''] ?? Utensils
@@ -259,9 +291,22 @@ function JournalRow({
     day: 'numeric',
   })
 
+  // A plain <button> with a nested edit <button> is invalid HTML (browsers
+  // implicitly close the outer button, breaking layout) -- role="button" on
+  // a div plus an explicit key handler keeps the whole-row click/keyboard
+  // navigation the original <button> gave, while allowing a real nested
+  // button for the edit affordance (stopPropagation, per the Code Map).
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(restaurant.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect(restaurant.id)
+        }
+      }}
       style={{
         display: 'flex',
         alignItems: 'flex-start',
@@ -316,9 +361,36 @@ function JournalRow({
         )}
       </div>
 
-      <span style={{ fontSize: 12, color: '#A8A09A', flexShrink: 0, marginTop: 2 }}>
-        {formattedDate}
-      </span>
-    </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0, marginTop: 2 }}>
+        <span style={{ fontSize: 12, color: '#A8A09A' }}>
+          {formattedDate}
+        </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit(log)
+          }}
+          onKeyDown={(e) => {
+            // Without this, Enter/Space on this button bubbles to the row
+            // wrapper's own onKeyDown, which navigates to the restaurant
+            // instead of opening the edit modal.
+            if (e.key === 'Enter' || e.key === ' ') e.stopPropagation()
+          }}
+          aria-label={`Edit visit to ${restaurant.name}`}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 4,
+            borderRadius: 6,
+            cursor: 'pointer',
+            color: '#A8A09A',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Pencil size={13} strokeWidth={2} />
+        </button>
+      </div>
+    </div>
   )
 }

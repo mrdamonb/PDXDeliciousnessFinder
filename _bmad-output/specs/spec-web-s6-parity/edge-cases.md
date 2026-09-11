@@ -1,6 +1,6 @@
 # I/O and edge-case matrix
 
-Refreshed 2026-09-06. Menu rows dropped (shipped on web); edit rows added for CAP-4.
+Refreshed 2026-09-11. Menu rows dropped (shipped on web); edit rows added for CAP-4, then delete rows added for CAP-4 when story 5 reversed the "no delete-from-journal" non-goal.
 
 | Scenario | Input / State | Expected behavior |
 |---|---|---|
@@ -20,3 +20,9 @@ Refreshed 2026-09-06. Menu rows dropped (shipped on web); edit rows added for CA
 | Edit a visit | Any save | Restaurant status is unchanged — no promotion path in the edit flow |
 | Concurrent edit, web and iOS | Same visit edited on both before either syncs | Both converge on the edit carrying the later `updated_at`. Silent resolution, no conflict prompt — matches restaurant behavior |
 | Edit written without `updated_at` | — | Must not be possible. See the constraint in SPEC.md; this is the failure mode the constraint exists to prevent |
+| Delete a visit, Journal | Confirm delete on a row | Row removed immediately; empty month header also disappears |
+| Delete a visit, RestaurantPanel | Confirm delete on a row in the expanded panel | Row removed immediately from that list |
+| Delete the last visit for a restaurant | Panel visit list goes to zero | "No visits yet." empty state reappears |
+| Delete a visit without confirming first | Trash/Delete affordance tapped once | Nothing is removed — a confirm step is required before the row disappears |
+| Delete a visit, either surface | Any outcome | Restaurant `status` and all other fields unchanged |
+| Delete fails (e.g. RLS denies it) | Delete confirmed, mutation errors or removes zero rows | Inline error, row stays — never a silent no-op that looks like success |

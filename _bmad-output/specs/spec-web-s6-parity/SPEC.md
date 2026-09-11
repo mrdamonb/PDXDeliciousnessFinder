@@ -34,8 +34,8 @@ The backdrop that makes it matter now is not only the gap. **Story 2.10's cross-
   - **success:** From the journal, choosing a restaurant and saving a visit makes the entry appear in the journal immediately without a page reload, and a `want_to_go` restaurant becomes `been_there`.
 
 - **CAP-4**
-  - **intent:** Damon can correct a visit he already logged — its date and its note — from the journal, so a visit stops being write-once on the web the way it stopped being write-once on iOS.
-  - **success:** Editing a visit updates it in place with the same `id` and `created_at`, writes a fresh `updated_at`, leaves the restaurant's status unchanged, and produces no duplicate entry. An edit made on web and an edit made on iOS to the same visit converge on whichever carries the later `updated_at`.
+  - **intent:** Damon can correct a visit he already logged — its date and its note — from the journal, so a visit stops being write-once on the web the way it stopped being write-once on iOS. He can also delete a visit added by mistake, from either surface that shows one.
+  - **success:** Editing a visit updates it in place with the same `id` and `created_at`, writes a fresh `updated_at`, leaves the restaurant's status unchanged, and produces no duplicate entry. An edit made on web and an edit made on iOS to the same visit converge on whichever carries the later `updated_at`. Deleting a visit, from the Journal or from `RestaurantPanel`'s visit history, removes it after a confirm step, leaves the restaurant's status and every other field unchanged, and an emptied visit list or month header reverts to its empty state.
 
 ## Constraints
 
@@ -59,7 +59,6 @@ The backdrop that makes it matter now is not only the gap. **Story 2.10's cross-
 - Offline write queue and realtime sync on web. Architectural; web is online-only by design.
 - Web Share Target. Adjacent and tempting; already parked on `deferred-work.md`.
 - Removing bulk import to "match" iOS. Bulk import is web-only by design and is not a gap.
-- Deleting a visit from the journal. iOS 2.10 excludes it deliberately; web matches.
 - Edit history, versioning, or an audit trail on visits.
 - Changing which restaurant a visit belongs to.
 
@@ -72,6 +71,7 @@ Damon opens the web app on his phone, finds a restaurant by typing part of its n
 - The `visit_logs` UPDATE RLS policy verified for iOS 2.10 (`visit_logs_update_own`, `USING (auth.uid() = user_id)`) governs the web client identically, since both authenticate as the same Supabase user. Not re-verified from the web side.
 - `visit_logs.updated_at` exists in the remote database, added by migration `20260906000000_add_visit_logs_updated_at.sql` for iOS 2.10. Web depends on it and does not add it.
 - iOS story 2.10 is **done** (Damon's call, 2026-09-06), so CAP-4 builds against settled iOS behaviour. Its cross-device conflict check stays deferred to story 5 of this spec.
+- **Reversed, 2026-09-11 (Damon, story 5):** the 2026-09-06 non-goal excluding delete-from-journal (mirroring iOS 2.10, which excludes it deliberately) is reversed for web. Web now supports deleting a visit from both the Journal and `RestaurantPanel`'s visit history, behind a confirm step. iOS's own delete path (`VisitLogRepository.delete`) stays unwired to any UI — this widens web only, and does not imply iOS 2.10 was wrong to leave delete out.
 
 ## Open Questions
 

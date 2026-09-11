@@ -66,8 +66,9 @@
   description: >-
     Deliver CAP-4: correct a logged visit's date and note from the journal,
     ending write-once visits on the web the way iOS 2.10 ended them on the
-    phone. This is the story that unblocks iOS 2.10's deferred cross-device
-    verification.
+    phone, and add the ability to delete a visit added by mistake, from
+    both the Journal and RestaurantPanel's visit history. This is the story
+    that unblocks iOS 2.10's deferred cross-device verification.
   spec_checkpoint: true
   done_checkpoint: true
   invoke_dev_with: >-
@@ -76,8 +77,10 @@
     dto.updatedAt > existing.updatedAt, and the visit select at
     actions.ts:97 omits the column today, so an edit that skips it wins or
     loses at random. Mirror iOS 2.10's semantics exactly — preserve id and
-    created_at, never touch the restaurant's status, no delete-from-journal.
-    Story 2.10's own spec file carries the iOS side. After this lands, the
-    deferred check is: edit the same visit on web and on iOS before either
-    syncs, and confirm both converge on the later updated_at — a genuine
-    conflict, not just forward propagation.
+    created_at, never touch the restaurant's status. Damon reversed the
+    2026-09-06 "no delete-from-journal" non-goal on 2026-09-11: delete is now
+    in scope on both surfaces, gated behind a confirm step, still never
+    touching restaurant status. Story 2.10's own spec file carries the iOS
+    side. After this lands, the deferred check is: edit the same visit on web
+    and on iOS before either syncs, and confirm both converge on the later
+    updated_at — a genuine conflict, not just forward propagation.

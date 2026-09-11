@@ -66,6 +66,7 @@ export type VisitLog = {
   visited_at: string
   note: string | null
   created_at: string
+  updated_at: string
 }
 
 export async function getVisitLogs(restaurantId: string): Promise<VisitLog[]> {
@@ -75,7 +76,7 @@ export async function getVisitLogs(restaurantId: string): Promise<VisitLog[]> {
 
   const { data, error } = await supabase
     .from('visit_logs')
-    .select('id, restaurant_id, visited_at, note, created_at')
+    .select('id, restaurant_id, visited_at, note, created_at, updated_at')
     .eq('restaurant_id', restaurantId)
     .eq('user_id', user.id)
     .order('visited_at', { ascending: false })
@@ -98,6 +99,7 @@ export type VisitLogWithRestaurant = {
   visited_at: string
   note: string | null
   created_at: string
+  updated_at: string
   restaurant: EmbeddedRestaurant | null
 }
 
@@ -115,6 +117,7 @@ type RawVisitLogRow = {
   visited_at: string
   note: string | null
   created_at: string
+  updated_at: string
   restaurant: EmbeddedRestaurant | EmbeddedRestaurant[] | null
 }
 
@@ -138,7 +141,7 @@ export async function getAllVisitLogs(): Promise<VisitLogWithRestaurant[]> {
 
   const { data, error } = await supabase
     .from('visit_logs')
-    .select('id, restaurant_id, visited_at, note, created_at, restaurant:restaurants(id, name, neighborhood, venue_type, status)')
+    .select('id, restaurant_id, visited_at, note, created_at, updated_at, restaurant:restaurants(id, name, neighborhood, venue_type, status)')
     .eq('user_id', user.id)
     .order('visited_at', { ascending: false })
 
@@ -273,7 +276,7 @@ export async function logVisit(
   const { data: inserted, error: insertError } = await supabase
     .from('visit_logs')
     .insert({ restaurant_id: restaurantId, user_id: user.id, visited_at: visitedAt, note })
-    .select('id, restaurant_id, visited_at, note, created_at')
+    .select('id, restaurant_id, visited_at, note, created_at, updated_at')
     .single()
 
   if (insertError) throw new Error(insertError.message)
@@ -300,4 +303,55 @@ export async function logVisit(
   }
 
   return { visit: inserted as VisitLog, statusChanged }
+}
+
+// CAP-4: correct a logged visit's date/note. Preserves `id`/`created_at`,
+// writes a fresh `updated_at` so iOS 2.10's `dto.updatedAt > existing.updatedAt`
+// conflict resolution can see this edit -- the constraint that bites silently
+// if skipped (SPEC.md). Never touches the restaurant's status.
+export async function updateVisit(
+  id: string,
+  visitedAt: string,
+  note: string | null,
+): Promise<VisitLog> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('visit_logs')
+    .update({ visited_at: visitedAt, note, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select('id, restaurant_id, visited_at, note, created_at, updated_at')
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data as VisitLog
+}
+
+// CAP-4: remove a visit added by mistake, from either the Journal or
+// RestaurantPanel's visit history. Mirrors deleteRestaurant's shape -- scoped
+// to the signed-in user, never touches the restaurant's status or any other
+// row.
+export async function deleteVisit(id: string): Promise<void> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // .select('id') makes a zero-row match detectable. With no DELETE RLS
+  // policy scoped to the owner, Supabase resolves the delete with no error
+  // and zero rows removed -- callers would otherwise read "no thrown error"
+  // as "deleted" and strip the row from local state, where it can silently
+  // reappear on the next fetch. Mirrors updateVisit's .single() throwing on
+  // a zero-row match.
+  const { data, error } = await supabase
+    .from('visit_logs')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select('id')
+
+  if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('Visit could not be deleted.')
 }

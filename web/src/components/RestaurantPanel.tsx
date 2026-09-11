@@ -5,8 +5,16 @@ import { useRouter } from 'next/navigation'
 import { Utensils, UtensilsCrossed, Wine, Beer, Store, MapPin, Globe, FileText, X, ChevronDown, Clock, Pencil, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Restaurant } from '@/lib/supabase/restaurants'
-import { getVisitLogs, logVisit, deleteRestaurant, type VisitLog } from '@/app/actions'
+import { getVisitLogs, logVisit, updateVisit, deleteVisit, deleteRestaurant, type VisitLog } from '@/app/actions'
 import { normalizeWebUrl } from '@/lib/url'
+
+// Local calendar day, not UTC -- same as AddVisitModal.tsx's todayLocal(),
+// so editing a visit can't silently set a future date any more than adding
+// one can.
+function todayLocal(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 const STATUS_COLORS: Record<Restaurant['status'], string> = {
   want_to_go: '#D97706',
@@ -76,11 +84,29 @@ export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete 
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
+  // Per-row edit state -- CAP-4: Pencil swaps a row into this inline form,
+  // reusing the "add visit" form's own chrome rather than inventing a third
+  // pattern (RestaurantPanel already has an inline log-form and an inline
+  // delete-confirm strip for the restaurant itself).
+  const [editingVisit, setEditingVisit] = useState<VisitLog | null>(null)
+  const [editDate, setEditDate] = useState('')
+  const [editNote, setEditNote] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
+  // Per-row delete-confirm state -- mirrors confirmingDelete/deleting above,
+  // scoped to one visit id at a time.
+  const [confirmingDeleteVisitId, setConfirmingDeleteVisitId] = useState<string | null>(null)
+  const [deletingVisit, setDeletingVisit] = useState(false)
+  const [deleteVisitError, setDeleteVisitError] = useState<string | null>(null)
+
   // Reset visits when restaurant changes so we don't show stale data
   useEffect(() => {
     setVisits(null)
     setVisitsError(null)
     setShowForm(false)
+    setEditingVisit(null)
+    setConfirmingDeleteVisitId(null)
   }, [restaurant.id])
 
   // Fetch visits once when first expanded
@@ -120,6 +146,63 @@ export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete 
       setSaveError('Could not save. Try again.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  function startEditVisit(v: VisitLog) {
+    setShowForm(false)
+    setConfirmingDeleteVisitId(null)
+    setEditingVisit(v)
+    setEditDate(v.visited_at.slice(0, 10))
+    setEditNote(v.note ?? '')
+    setEditError(null)
+  }
+
+  function cancelEditVisit() {
+    setEditingVisit(null)
+    setEditError(null)
+  }
+
+  async function handleUpdateVisit() {
+    if (!editingVisit) return
+    if (!editDate) {
+      setEditError('Please enter a date.')
+      return
+    }
+    setEditSaving(true)
+    setEditError(null)
+    try {
+      const updated = await updateVisit(editingVisit.id, editDate, editNote.trim() || null)
+      setVisits((prev) => {
+        const next = (prev ?? []).map((v) => (v.id === updated.id ? updated : v))
+        return next.sort((a, b) => b.visited_at.localeCompare(a.visited_at))
+      })
+      setEditingVisit(null)
+    } catch {
+      setEditError('Could not save. Try again.')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  function startDeleteVisit(id: string) {
+    setShowForm(false)
+    setEditingVisit(null)
+    setConfirmingDeleteVisitId(id)
+    setDeleteVisitError(null)
+  }
+
+  async function handleDeleteVisit(id: string) {
+    setDeletingVisit(true)
+    setDeleteVisitError(null)
+    try {
+      await deleteVisit(id)
+      setVisits((prev) => (prev ?? []).filter((v) => v.id !== id))
+      setConfirmingDeleteVisitId(null)
+    } catch {
+      setDeleteVisitError('Could not delete. Try again.')
+    } finally {
+      setDeletingVisit(false)
     }
   }
 
@@ -415,7 +498,11 @@ export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete 
             </div>
             {!showForm && (
               <button
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  setEditingVisit(null)
+                  setConfirmingDeleteVisitId(null)
+                  setShowForm(true)
+                }}
                 aria-label="Log a visit"
                 style={{
                   width: 24,
@@ -502,24 +589,117 @@ export default function RestaurantPanel({ restaurant, onClose, onEdit, onDelete 
           {!visitsLoading && !visitsError && visits !== null && visits.length === 0 && !showForm && (
             <p className="px-4 py-3 text-sm" style={{ color: '#A8A09A' }}>No visits yet.</p>
           )}
-          {!visitsLoading && !visitsError && visits && visits.length > 0 && visits.map((v, i) => (
-            <div
-              key={v.id}
-              className="px-4 py-3"
-              style={{ borderTop: i === 0 && !showForm ? undefined : '1px solid #F0EBE5' }}
-            >
-              <p className="text-sm font-medium" style={{ color: '#1C1917' }}>
-                {new Date(v.visited_at.slice(0, 10) + 'T12:00:00').toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </p>
-              {v.note && (
-                <p className="text-sm mt-0.5" style={{ color: '#6B6560' }}>{v.note}</p>
-              )}
-            </div>
-          ))}
+          {!visitsLoading && !visitsError && visits && visits.length > 0 && visits.map((v, i) => {
+            const isEditing = editingVisit?.id === v.id
+            const isConfirmingDelete = confirmingDeleteVisitId === v.id
+            return (
+              <div
+                key={v.id}
+                className="px-4 py-3"
+                style={{ borderTop: i === 0 && !showForm ? undefined : '1px solid #F0EBE5' }}
+              >
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      max={todayLocal()}
+                      className="w-full text-sm p-2 rounded-lg mb-2"
+                      style={{ border: '1px solid #D1C9C0', color: '#1C1917' }}
+                    />
+                    <textarea
+                      value={editNote}
+                      onChange={(e) => setEditNote(e.target.value)}
+                      placeholder="Note (optional)"
+                      rows={2}
+                      className="w-full text-sm p-2 rounded-lg mb-2 resize-none"
+                      style={{ border: '1px solid #D1C9C0', color: '#1C1917' }}
+                    />
+                    {editError && (
+                      <p className="text-xs mb-2" style={{ color: '#DC2626' }}>{editError}</p>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleUpdateVisit}
+                        disabled={editSaving}
+                        className="text-sm font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity"
+                        style={{ backgroundColor: '#C2410C', opacity: editSaving ? 0.6 : 1 }}
+                      >
+                        {editSaving ? 'Saving…' : 'Save'}
+                      </button>
+                      <button
+                        onClick={cancelEditVisit}
+                        disabled={editSaving}
+                        className="text-sm transition-opacity hover:opacity-60"
+                        style={{ color: '#6B6560' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : isConfirmingDelete ? (
+                  <div>
+                    <p className="text-sm mb-2" style={{ color: '#DC2626' }}>Delete this visit?</p>
+                    {deleteVisitError && (
+                      <p className="text-xs mb-2" style={{ color: '#DC2626' }}>{deleteVisitError}</p>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleDeleteVisit(v.id)}
+                        disabled={deletingVisit}
+                        className="text-sm font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity"
+                        style={{ backgroundColor: '#DC2626', opacity: deletingVisit ? 0.6 : 1 }}
+                      >
+                        {deletingVisit ? 'Deleting…' : 'Delete'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmingDeleteVisitId(null)}
+                        disabled={deletingVisit}
+                        className="text-sm transition-opacity hover:opacity-60"
+                        style={{ color: '#6B6560' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium" style={{ color: '#1C1917' }}>
+                        {new Date(v.visited_at.slice(0, 10) + 'T12:00:00').toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+                      {v.note && (
+                        <p className="text-sm mt-0.5" style={{ color: '#6B6560' }}>{v.note}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <button
+                        onClick={() => startEditVisit(v)}
+                        className="p-1 rounded-lg transition-opacity hover:opacity-60"
+                        style={{ color: '#A8A09A' }}
+                        aria-label="Edit visit"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => startDeleteVisit(v.id)}
+                        className="p-1 rounded-lg transition-opacity hover:opacity-60"
+                        style={{ color: '#A8A09A' }}
+                        aria-label="Delete visit"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
