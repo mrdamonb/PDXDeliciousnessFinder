@@ -34,7 +34,11 @@ extension VisitLogDTO: Encodable {
         try c.encode(id, forKey: .id)
         try c.encode(restaurantId, forKey: .restaurantId)
         try c.encode(userId, forKey: .userId)
-        try c.encode(visitedAt, forKey: .visitedAt)
+        // Bare date string, matching the `date` column — avoids the encoder's
+        // shared `.iso8601` strategy round-tripping through a UTC timestamp,
+        // which could shift the calendar day depending on the encoder's
+        // assumed time-of-day for this Date.
+        try c.encode(Self.dateOnlyFormatter.string(from: visitedAt), forKey: .visitedAt)
         try c.encodeIfPresent(note, forKey: .note)
         try c.encode(createdAt, forKey: .createdAt)
         try c.encode(updatedAt, forKey: .updatedAt)
@@ -42,12 +46,34 @@ extension VisitLogDTO: Encodable {
 }
 
 extension VisitLogDTO: Decodable {
+    // `visited_at` is a Postgres `date` column ("2026-04-01", no time or zone) —
+    // PostgREST serializes it bare. The decoder's shared `.iso8601` strategy
+    // (set for `created_at`/`updated_at`, which are `timestamptz`) requires a
+    // full timestamp and throws on that bare string, which previously aborted
+    // decoding this field's *entire containing array*, silently failing every
+    // remote visit pull and realtime visit event.
+    private static let dateOnlyFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+
     nonisolated init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(UUID.self, forKey: .id)
         restaurantId = try c.decode(UUID.self, forKey: .restaurantId)
         userId = try c.decode(UUID.self, forKey: .userId)
-        visitedAt = try c.decode(Date.self, forKey: .visitedAt)
+        let visitedAtString = try c.decode(String.self, forKey: .visitedAt)
+        guard let visitedAtDate = Self.dateOnlyFormatter.date(from: visitedAtString) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .visitedAt,
+                in: c,
+                debugDescription: "Invalid date-only format: \(visitedAtString)"
+            )
+        }
+        visitedAt = visitedAtDate
         note = try c.decodeIfPresent(String.self, forKey: .note)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
         updatedAt = try c.decode(Date.self, forKey: .updatedAt)
