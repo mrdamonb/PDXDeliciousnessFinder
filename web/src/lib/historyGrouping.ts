@@ -1,4 +1,5 @@
 import type { VisitLogWithRestaurant } from '@/app/actions'
+import { normalizeSearchText } from '@/lib/filters'
 
 // Same shape as VisitLogWithRestaurant but with `restaurant` narrowed to
 // non-null — the type-level record of "already filtered before grouping".
@@ -23,16 +24,36 @@ function toLocalDate(visitedAt: string): Date {
 /// Pure grouping for the Journal view. Mirrors iOS's HistoryGrouping.swift:
 /// filter out entries whose restaurant join returned nothing BEFORE grouping
 /// (a month header must never render with nothing beneath it — this was
-/// violated on iOS 3.5 despite being an explicit AC), then group by
+/// violated on iOS 3.5 despite being an explicit AC), then optionally filter
+/// by search query (also before grouping, same reason), then group by
 /// year+month, months descending, entries within a month descending by
 /// visited_at.
-export function groupVisitsByMonth(logs: VisitLogWithRestaurant[]): MonthSection[] {
+///
+/// `query` mirrors iOS's HistoryGrouping.sections(from:matching:): substring,
+/// case- and diacritic-insensitive, over restaurant name and visit note only
+/// (no cuisine/neighborhood — that's Map/List's matchesQuery, a different
+/// rule). A whitespace-only or empty query is treated as no search, matching
+/// iOS's trim-first behavior.
+export function groupVisitsByMonth(
+  logs: VisitLogWithRestaurant[],
+  query = ''
+): MonthSection[] {
   const renderable = logs.filter(
     (log): log is VisitLogWithRestaurantResolved => log.restaurant !== null
   )
 
+  const trimmedQuery = query.trim()
+  const normalizedQuery = trimmedQuery ? normalizeSearchText(trimmedQuery) : ''
+  const matching = normalizedQuery
+    ? renderable.filter(
+        (log) =>
+          normalizeSearchText(log.restaurant.name).includes(normalizedQuery) ||
+          normalizeSearchText(log.note ?? '').includes(normalizedQuery)
+      )
+    : renderable
+
   const byMonth = new Map<string, VisitLogWithRestaurantResolved[]>()
-  for (const log of renderable) {
+  for (const log of matching) {
     const date = toLocalDate(log.visited_at)
     const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`
     const bucket = byMonth.get(key)

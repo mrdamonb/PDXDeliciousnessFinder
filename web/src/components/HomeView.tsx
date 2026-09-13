@@ -237,8 +237,8 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             type="text"
             value={filterState.query}
             onChange={(e) => setFilterState((prev) => ({ ...prev, query: e.target.value }))}
-            placeholder="Search your places…"
-            aria-label="Search your places"
+            placeholder={view === 'journal' ? 'Search restaurants and notes…' : 'Search your places…'}
+            aria-label={view === 'journal' ? 'Search restaurants and notes' : 'Search your places'}
             style={{
               width: '100%',
               boxSizing: 'border-box',
@@ -381,14 +381,18 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                   setSelectedId(id)
                   setView('map')
                 }}
+                query={filterState.query}
+                onClearSearch={clearSearch}
               />
             </div>
           )}
 
           {/* Filter button — floats top-right, below header. Journal ignores
-              filterState entirely (spec: it always shows the full unfiltered
-              visit set), so the button would sit there doing nothing — hide
-              it there rather than show a control with no effect. */}
+              the filter-popover dimensions (status/venueType/neighborhood/
+              cuisine/price) — it only consumes filterState.query, via the
+              search row above — so the button would sit there doing nothing
+              for the dimensions it controls — hide it there rather than show
+              a control with no effect. */}
           {(view === 'map' || view === 'list') && (
             <FilterButton
               activeCount={activeCount}

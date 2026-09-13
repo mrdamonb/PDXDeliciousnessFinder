@@ -92,3 +92,21 @@ Mark a restaurant as visited. Add notes. View visit history with timestamps. Wri
 - **`VisitLogRepository.delete(_:)`'s local-delete-before-enqueue ordering can silently resurrect a "deleted" visit.** (`Core/Storage/Repositories/VisitLogRepository.swift:59-67`) commits the local SwiftData delete and its own `save()` before calling `syncQueue.enqueueDelete`. If that enqueue call's own `modelContext.save()` throws, the delete is never durably queued — a later `pullFromRemote` still finds the row remotely, finds no local match, and silently re-inserts it. Pre-existing in code this story's spec explicitly said not to modify; surfaced because this is the first story to give a real UI caller a path to this method at all.
 - **A visit deleted remotely (realtime) while its own delete-confirmation dialog is open could call `.delete()` on an already-removed model.** Both `HistoryView.swift` and `RestaurantDetailView.swift` hold a `VisitLog` reference in `@State` across the async gap between swipe and confirmation-dialog tap. Same class of dangling-`@Model`-reference issue already deferred from stories 2.8's and 2.10's reviews for `PickRestaurantView`/`AddVisitView`'s edit sheet — and, per those entries, currently low-probability since realtime deletes have their own known gaps (see the 1.5 review entries above).
 - **`RestaurantDetailViewModel.actionState` is now shared across five unrelated async actions** (favorite toggle, mark-visited, restaurant delete, add-visit, and this story's new delete-visit), with no discriminator between them. A fast sequence of two different actions can have the second's success/error state clobber the first's before the user has read it. Pre-existing architectural choice (already shared across four actions before this story), not introduced fresh here — this story just adds a fifth sharer.
+
+## Deferred from: code review of spec-web-s6-parity story 6, search the journal (2026-09-13)
+
+- source_spec: `_bmad-output/specs/spec-web-s6-parity/stories/6-search-the-journal.md`
+  summary: No `aria-live` region announces the Journal's "No visits match" state or its return to the full list.
+  evidence: The no-results state added by this story swaps content in/out silently on every keystroke, with no screen-reader announcement — same gap as the app's other empty/filtered states, now hit for the first time via a text field rather than a toggle.
+- source_spec: `_bmad-output/specs/spec-web-s6-parity/stories/6-search-the-journal.md`
+  summary: The "Clear search" button in Journal's new no-results state doesn't return focus to the search input.
+  evidence: Same pattern already exists unfixed in `ListView.tsx`'s identical Clear button; this story adds a second instance of the same keyboard/screen-reader gap rather than a new one.
+- source_spec: `_bmad-output/specs/spec-web-s6-parity/stories/6-search-the-journal.md`
+  summary: `normalizeSearchText` (filters.ts) doesn't collapse internal whitespace, so a doubled space in a query or note breaks an otherwise-matching search.
+  evidence: Pre-existing function, unchanged by this story, now also applied to free-text visit notes for the first time — notes are more likely than restaurant names to contain typo'd double spaces.
+- source_spec: `_bmad-output/specs/spec-web-s6-parity/stories/6-search-the-journal.md`
+  summary: The inline "Clear search" button style is now duplicated a third time (`ListView.tsx` plus two spots in `HistoryView.tsx`).
+  evidence: Same class of chrome-duplication already recorded above for modals (stories 4 and 5); a shared component would stop future styling tweaks needing three edits.
+- source_spec: `_bmad-output/specs/spec-web-s6-parity/stories/6-search-the-journal.md`
+  summary: The new name/note query-matching branch in `groupVisitsByMonth` has zero automated regression protection.
+  evidence: Same systemic gap already recorded above for this function's original introduction (story 3, 2026-09-08) and for iOS generally — the web app still has no test runner (`package.json` has no jest/vitest/playwright, no `test` script) — this story extends the untested function rather than introducing a new gap.

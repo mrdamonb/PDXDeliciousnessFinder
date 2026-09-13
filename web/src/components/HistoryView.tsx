@@ -20,6 +20,8 @@ const VENUE_ICONS: Record<string, LucideIcon> = {
 type Props = {
   restaurants: Restaurant[]
   onSelectRestaurant: (id: string) => void
+  query: string
+  onClearSearch: () => void
 }
 
 function toLocalDate(visitedAt: string): Date {
@@ -30,7 +32,7 @@ function toLocalDate(visitedAt: string): Date {
 // grouped under month/year headers — the web counterpart to iOS's
 // HistoryView + HistoryGrouping. Fetches via the getAllVisitLogs server
 // action, same loading/error/data shape as RestaurantPanel.tsx's visit fetch.
-export default function HistoryView({ restaurants, onSelectRestaurant }: Props) {
+export default function HistoryView({ restaurants, onSelectRestaurant, query, onClearSearch }: Props) {
   const router = useRouter()
   const [logs, setLogs] = useState<VisitLogWithRestaurant[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,6 +91,9 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
       return updated.sort((a, b) => b.visited_at.localeCompare(a.visited_at))
     })
     if (statusChanged) router.refresh()
+    // Ask First #3 (decided): clear an active search on a successful save so
+    // the new entry is visible even if it wouldn't otherwise match the query.
+    if (query.trim()) onClearSearch()
   }
 
   // CAP-4: splice an edited visit into local state the same way handleSaved
@@ -155,13 +160,19 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
       </div>
     )
   } else {
-    const sections = groupVisitsByMonth(logs ?? [])
+    const sections = groupVisitsByMonth(logs ?? [], query)
+    const trimmedQuery = query.trim()
 
     // Zero visits and "every visit's restaurant was deleted" both land here
     // deliberately — either way there is nothing to group, and a blank surface
     // is never the right answer (I/O matrix: "warm empty state, not a blank
-    // surface").
-    if (sections.length === 0) {
+    // surface"). Distinguished from the no-results-for-search state below by
+    // checking for any renderable log directly, rather than re-running the
+    // full grouping pipeline (bucketing + sort) a second time just to answer
+    // a yes/no question.
+    const hasAnyRenderableVisits = (logs ?? []).some((log) => log.restaurant !== null)
+
+    if (sections.length === 0 && !hasAnyRenderableVisits) {
       content = (
         <div
           style={{
@@ -179,6 +190,41 @@ export default function HistoryView({ restaurants, onSelectRestaurant }: Props) 
           <p style={{ fontSize: 13, color: '#6B6560', margin: 0 }}>
             Your food adventures will show up here.
           </p>
+        </div>
+      )
+    } else if (sections.length === 0) {
+      // Visits exist, but none match the active search — distinct from the
+      // warm empty state above (I/O matrix: "No visits match" + Clear search,
+      // same pattern as ListView.tsx's no-results state).
+      content = (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            gap: 12,
+            padding: '0 24px',
+            textAlign: 'center',
+            color: '#6B6560',
+          }}
+        >
+          <p style={{ fontSize: 15, fontWeight: 500 }}>No visits match &ldquo;{trimmedQuery}&rdquo;</p>
+          <button
+            onClick={onClearSearch}
+            style={{
+              background: 'none',
+              border: '1px solid #D1C9C0',
+              borderRadius: 999,
+              padding: '6px 16px',
+              fontSize: 13,
+              color: '#6B6560',
+              cursor: 'pointer',
+            }}
+          >
+            Clear search
+          </button>
         </div>
       )
     } else {
