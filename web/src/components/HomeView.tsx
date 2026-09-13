@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import type { Restaurant } from '@/lib/supabase/restaurants'
+import pdxLogo from '@/assets/pdx-logo.png'
 import AddRestaurantModal from './AddRestaurantModal'
 import {
   type FilterState,
@@ -62,13 +64,33 @@ function JournalIcon({ active }: { active: boolean }) {
   )
 }
 
-// App logo mark — solid pin/marker silhouette, replaces the header wordmark.
-function LogoMark() {
+// App logo — the full "PDX" pin in a cream badge (header 1c, step 1:
+// _bmad-output/planning-artifacts/header-1c-decisions.md). The solid badge
+// gives the mark an opaque ground so the frosted header's blur never sits
+// behind its white lettering. Tapping it returns to the map with filters and
+// search kept; it also closes any open restaurant panel.
+function LogoBadge({ onClick }: { onClick: () => void }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="#C2410C" role="img" aria-label="PDX Deliciousness Finder">
-      <title>PDX Deliciousness Finder</title>
-      <path d="M12 2C7.86 2 4.5 5.36 4.5 9.5c0 5.5 6.5 12 7.02 12.53a.66.66 0 0 0 .96 0C13 21.5 19.5 15 19.5 9.5 19.5 5.36 16.14 2 12 2z" />
-    </svg>
+    <button
+      onClick={onClick}
+      aria-label="PDX Deliciousness Finder, back to map"
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        backgroundColor: '#F7F3EE',
+        border: '1px solid #E0D8D0',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
+        cursor: 'pointer',
+        flexShrink: 0,
+      }}
+    >
+      <Image src={pdxLogo} alt="" height={30} style={{ width: 'auto', height: 30 }} unoptimized priority />
+    </button>
   )
 }
 
@@ -119,8 +141,13 @@ export default function HomeView({ restaurants, userEmail }: Props) {
           className="flex items-center justify-between px-4"
           style={{ height: 52 }}
         >
-          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-            <LogoMark />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>
+            <LogoBadge
+              onClick={() => {
+                setView('map')
+                setSelectedId(null)
+              }}
+            />
           </div>
 
           <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
