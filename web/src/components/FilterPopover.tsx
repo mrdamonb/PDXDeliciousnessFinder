@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import type { FilterState, FilterOptions } from '@/lib/filters'
-import { TOP_BAR_HEIGHT } from './HomeView'
+import { BAR_HEIGHT, PILL_BAND_HEIGHT } from './HomeView'
 
 const STATUS_OPTIONS = [
   { value: 'want_to_go', label: 'Want to Go', activeColor: '#F59E0B' },
@@ -67,15 +67,15 @@ export default function FilterPopover({ filterState, onFilterChange, filterOptio
       ref={ref}
       style={{
         position: 'absolute',
-        // Header + search row.
-        top: TOP_BAR_HEIGHT,
+        // Below the bar and the floating view-pill row, plus an 8px gap.
+        top: `calc(${BAR_HEIGHT + PILL_BAND_HEIGHT + 8}px + env(safe-area-inset-top))`,
         left: 16,
         right: 16,
         zIndex: 40,
         backgroundColor: 'white',
         borderRadius: 16,
         boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
-        maxHeight: 'calc(100dvh - 120px)',
+        maxHeight: `calc(100dvh - ${BAR_HEIGHT + PILL_BAND_HEIGHT + 20}px - env(safe-area-inset-top))`,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

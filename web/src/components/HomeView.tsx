@@ -24,42 +24,34 @@ import HistoryView from './HistoryView'
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false })
 
-// Header is 52px tall; the search row below it is 56px. Content below both
-// (list padding, floating filter button, filter popover) reads off these
-// exported constants so it stays in sync if either row's height ever changes.
-export const HEADER_HEIGHT = 52
-export const SEARCH_ROW_HEIGHT = 56
-export const TOP_BAR_HEIGHT = HEADER_HEIGHT + SEARCH_ROW_HEIGHT
+// One 64px bar (logo badge, search, avatar) replaces the old 52px header and
+// 56px search row. Below it floats a row holding the Map/List/Journal pill
+// and, on Map and List, the Filter chip (header 1c, step 2a:
+// _bmad-output/planning-artifacts/header-1c-decisions.md). Content below
+// (list/journal insets, filter popover) reads off these exported constants so
+// it stays in sync if either ever changes.
+export const BAR_HEIGHT = 64
+const PILL_ROW_GAP = 12
+const PILL_HEIGHT = 48
+// The band the pill row occupies under the bar. On List and Journal it is
+// opaque, rows scroll up under it, and Journal month headers stick at its
+// bottom edge.
+export const PILL_BAND_HEIGHT = PILL_ROW_GAP + PILL_HEIGHT
 
-// Map icon (grid of 4 squares)
-function MapIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={active ? '#1C1917' : '#6B6560'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </svg>
-  )
-}
+type View = 'map' | 'list' | 'journal'
 
-// List icon (horizontal lines)
-function ListIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={active ? '#1C1917' : '#6B6560'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  )
-}
+const VIEWS: { value: View; label: string }[] = [
+  { value: 'map', label: 'Map' },
+  { value: 'list', label: 'List' },
+  { value: 'journal', label: 'Journal' },
+]
 
-// Journal icon (open book) — third toggle segment, CAP-2
-function JournalIcon({ active }: { active: boolean }) {
+// Magnifier for the search field
+function SearchIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={active ? '#1C1917' : '#6B6560'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v17H6.5A2.5 2.5 0 0 0 4 22.5v-17Z" />
-      <path d="M12 3h5.5A2.5 2.5 0 0 1 20 5.5v17A2.5 2.5 0 0 0 17.5 20H12" />
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A09A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="16.5" y1="16.5" x2="21" y2="21" />
     </svg>
   )
 }
@@ -101,18 +93,22 @@ type Props = {
 
 export default function HomeView({ restaurants, userEmail }: Props) {
   const router = useRouter()
-  const [view, setView] = useState<'map' | 'list' | 'journal'>('map')
+  const [view, setView] = useState<View>('map')
   const [filterState, setFilterState] = useState<FilterState>(EMPTY_FILTER)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  // Visits HistoryView is showing (after search), for the "N visits" chip in
+  // the pill row. Null while the journal is loading or errored.
+  const [visitCount, setVisitCount] = useState<number | null>(null)
 
   const filterOptions = getFilterOptions(restaurants)
   const filteredRestaurants = filterRestaurants(restaurants, filterState)
   const activeCount = activeFilterCount(filterState)
   const cuisineSuggestions = Array.from(new Set(restaurants.map((r) => r.cuisine).filter((c): c is string => !!c))).sort()
+  const searchActive = filterState.query.trim() !== ''
 
   function clearFilters() {
     setFilterState((prev) => ({ ...EMPTY_FILTER, query: prev.query }))
@@ -127,7 +123,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
       className="h-dvh relative overflow-hidden"
       style={{ backgroundColor: '#F7F3EE' }}
     >
-      {/* Frosted glass header */}
+      {/* Frosted glass bar: logo badge, search, account */}
       <header
         className="absolute top-0 left-0 right-0 backdrop-blur-md"
         style={{
@@ -138,173 +134,200 @@ export default function HomeView({ restaurants, userEmail }: Props) {
         }}
       >
         <div
-          className="flex items-center justify-between px-4"
-          style={{ height: 52 }}
+          className="flex items-center"
+          style={{ height: BAR_HEIGHT, padding: '0 14px', gap: 10 }}
         >
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>
-            <LogoBadge
-              onClick={() => {
-                setView('map')
-                setSelectedId(null)
-              }}
-            />
-          </div>
+          <LogoBadge
+            onClick={() => {
+              setView('map')
+              setSelectedId(null)
+            }}
+          />
 
-          <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
-            {/* Map / List toggle */}
-            <div
+          <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+            <span
               style={{
+                position: 'absolute',
+                left: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
                 display: 'flex',
-                backgroundColor: '#EDE8E3',
-                borderRadius: 8,
-                padding: 2,
-                gap: 0,
+                pointerEvents: 'none',
               }}
             >
+              <SearchIcon />
+            </span>
+            <input
+              type="text"
+              value={filterState.query}
+              onChange={(e) => setFilterState((prev) => ({ ...prev, query: e.target.value }))}
+              placeholder={view === 'journal' ? 'Search restaurants and notes…' : 'Search your places…'}
+              aria-label={view === 'journal' ? 'Search restaurants and notes' : 'Search your places'}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                // Right padding only makes room for the clear button when it
+                // shows, so an empty field keeps its width for the placeholder.
+                padding: searchActive ? '10px 36px 10px 34px' : '10px 14px 10px 34px',
+                borderRadius: 999,
+                // The query persists across Map/List/Journal, so an active
+                // search tints the field: it is never an invisible filter.
+                border: `1px solid ${searchActive ? '#C2410C' : '#D1C9C0'}`,
+                backgroundColor: 'white',
+                fontSize: 14,
+                color: '#1C1917',
+                outline: 'none',
+              }}
+            />
+            {searchActive && (
               <button
-                onClick={() => setView('map')}
+                onClick={clearSearch}
+                aria-label="Clear search"
                 style={{
-                  padding: '14px 10px',
-                  borderRadius: 6,
+                  position: 'absolute',
+                  right: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 22,
+                  height: 22,
+                  borderRadius: 999,
                   border: 'none',
+                  backgroundColor: '#EDE8E3',
+                  color: '#6B6560',
+                  fontSize: 13,
+                  lineHeight: 1,
                   cursor: 'pointer',
-                  backgroundColor: view === 'map' ? 'white' : 'transparent',
-                  boxShadow: view === 'map' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
                   display: 'flex',
                   alignItems: 'center',
-                  transition: 'all 0.15s',
+                  justifyContent: 'center',
                 }}
-                aria-label="Map view"
               >
-                <MapIcon active={view === 'map'} />
+                ×
               </button>
-              <button
-                onClick={() => setView('list')}
-                style={{
-                  padding: '14px 10px',
-                  borderRadius: 6,
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: view === 'list' ? 'white' : 'transparent',
-                  boxShadow: view === 'list' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  transition: 'all 0.15s',
-                }}
-                aria-label="List view"
-              >
-                <ListIcon active={view === 'list'} />
-              </button>
-              <button
-                onClick={() => setView('journal')}
-                style={{
-                  padding: '14px 10px',
-                  borderRadius: 6,
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: view === 'journal' ? 'white' : 'transparent',
-                  boxShadow: view === 'journal' ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  transition: 'all 0.15s',
-                }}
-                aria-label="Journal view"
-              >
-                <JournalIcon active={view === 'journal'} />
-              </button>
-            </div>
+            )}
+          </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <UserMenu email={userEmail} />
-              {view !== 'journal' && (
-                <button
-                  onClick={() => setModalOpen(true)}
-                  disabled={modalOpen}
-                  aria-label="Add restaurant"
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 999,
-                    border: 'none',
-                    backgroundColor: '#C2410C',
-                    color: '#fff',
-                    fontSize: 20,
-                    lineHeight: 1,
-                    cursor: modalOpen ? 'default' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  +
-                </button>
-              )}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <UserMenu email={userEmail} />
+            {/* Stays in the bar for step 2a; step 2b moves it to a floating
+                action button. */}
+            {view !== 'journal' && (
+              <button
+                onClick={() => setModalOpen(true)}
+                disabled={modalOpen}
+                aria-label="Add restaurant"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 999,
+                  border: 'none',
+                  backgroundColor: '#C2410C',
+                  color: '#fff',
+                  fontSize: 20,
+                  lineHeight: 1,
+                  cursor: modalOpen ? 'default' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                +
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Search row — new row below the header, not inside it (Ask-First zone) */}
+      {/* Floating view pill, with the Filter chip on Map/List or the visit
+          count on Journal. The row itself ignores pointer events so map
+          gestures pass through the gap between its two ends. Journal hides
+          Filter: it ignores the popover's dimensions (status/venueType/
+          neighborhood/cuisine/price) and only consumes filterState.query. */}
       <div
-        className="absolute left-0 right-0 backdrop-blur-md"
         style={{
-          top: `calc(${HEADER_HEIGHT}px + env(safe-area-inset-top))`,
-          zIndex: 45,
-          height: SEARCH_ROW_HEIGHT,
-          backgroundColor: 'rgba(247, 243, 238, 0.88)',
-          borderBottom: '1px solid rgba(237, 232, 227, 0.8)',
+          position: 'absolute',
+          top: `calc(${BAR_HEIGHT + PILL_ROW_GAP}px + env(safe-area-inset-top))`,
+          left: 14,
+          right: 14,
+          height: PILL_HEIGHT,
+          zIndex: 40,
           display: 'flex',
           alignItems: 'center',
-          padding: '0 16px',
+          justifyContent: 'space-between',
+          gap: 8,
+          pointerEvents: 'none',
         }}
       >
-        <div style={{ position: 'relative', width: '100%' }}>
-          <input
-            type="text"
-            value={filterState.query}
-            onChange={(e) => setFilterState((prev) => ({ ...prev, query: e.target.value }))}
-            placeholder={view === 'journal' ? 'Search restaurants and notes…' : 'Search your places…'}
-            aria-label={view === 'journal' ? 'Search restaurants and notes' : 'Search your places'}
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              padding: '10px 36px 10px 14px',
-              borderRadius: 10,
-              border: '1px solid #D1C9C0',
-              backgroundColor: 'white',
-              fontSize: 14,
-              color: '#1C1917',
-              outline: 'none',
-            }}
-          />
-          {filterState.query.trim() && (
-            <button
-              onClick={clearSearch}
-              aria-label="Clear search"
-              style={{
-                position: 'absolute',
-                right: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: 22,
-                height: 22,
-                borderRadius: 999,
-                border: 'none',
-                backgroundColor: '#EDE8E3',
-                color: '#6B6560',
-                fontSize: 13,
-                lineHeight: 1,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              ×
-            </button>
-          )}
+        <div
+          role="group"
+          aria-label="View"
+          style={{
+            display: 'flex',
+            height: PILL_HEIGHT,
+            boxSizing: 'border-box',
+            padding: 1,
+            flexShrink: 0,
+            backgroundColor: 'rgba(247, 243, 238, 0.92)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(237, 232, 227, 0.9)',
+            borderRadius: 999,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            pointerEvents: 'auto',
+          }}
+        >
+          {VIEWS.map(({ value, label }) => {
+            const active = view === value
+            return (
+              <button
+                key={value}
+                onClick={() => setView(value)}
+                aria-pressed={active}
+                style={{
+                  height: 44,
+                  // 12px, not wider: at 320pt (iPhone SE) the pill plus a
+                  // Filter chip showing a two-digit count only just fits.
+                  padding: '0 12px',
+                  borderRadius: 999,
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: active ? '#1C1917' : 'transparent',
+                  color: active ? '#fff' : '#6B6560',
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 500,
+                  transition: 'all 0.15s',
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
         </div>
+
+        {(view === 'map' || view === 'list') && (
+          <div style={{ pointerEvents: 'auto' }}>
+            <FilterButton
+              activeCount={activeCount}
+              onClick={() => setPopoverOpen((o) => !o)}
+            />
+          </div>
+        )}
+
+        {view === 'journal' && visitCount !== null && (
+          <div
+            style={{
+              padding: '6px 12px',
+              borderRadius: 999,
+              backgroundColor: 'rgba(247, 243, 238, 0.92)',
+              border: '1px solid rgba(237, 232, 227, 0.9)',
+              fontSize: 12,
+              color: '#6B6560',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {visitCount} {visitCount === 1 ? 'visit' : 'visits'}
+          </div>
+        )}
       </div>
 
       {modalOpen && (
@@ -375,7 +398,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                paddingTop: `calc(${TOP_BAR_HEIGHT}px + env(safe-area-inset-top))`,
+                paddingTop: `calc(${BAR_HEIGHT}px + env(safe-area-inset-top))`,
                 backgroundColor: '#F7F3EE',
               }}
             >
@@ -389,6 +412,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                 onClearFilters={clearFilters}
                 query={filterState.query}
                 onClearSearch={clearSearch}
+                topInset={PILL_BAND_HEIGHT}
               />
             </div>
           )}
@@ -398,7 +422,7 @@ export default function HomeView({ restaurants, userEmail }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                paddingTop: `calc(${TOP_BAR_HEIGHT}px + env(safe-area-inset-top))`,
+                paddingTop: `calc(${BAR_HEIGHT}px + env(safe-area-inset-top))`,
                 backgroundColor: '#F7F3EE',
               }}
             >
@@ -410,21 +434,45 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                 }}
                 query={filterState.query}
                 onClearSearch={clearSearch}
+                topInset={PILL_BAND_HEIGHT}
+                onVisibleCountChange={setVisitCount}
               />
             </div>
           )}
 
-          {/* Filter button — floats top-right, below header. Journal ignores
-              the filter-popover dimensions (status/venueType/neighborhood/
-              cuisine/price) — it only consumes filterState.query, via the
-              search row above — so the button would sit there doing nothing
-              for the dimensions it controls — hide it there rather than show
-              a control with no effect. */}
-          {(view === 'map' || view === 'list') && (
-            <FilterButton
-              activeCount={activeCount}
-              onClick={() => setPopoverOpen((o) => !o)}
-            />
+          {/* Pill band — List and Journal only. Opaque under the pill so a
+              row scrolling up is cut off rather than ghosting through it,
+              then a 12px fade into the content. The map keeps the pill
+              floating over it with no band. */}
+          {(view === 'list' || view === 'journal') && (
+            <>
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  top: `calc(${BAR_HEIGHT}px + env(safe-area-inset-top))`,
+                  left: 0,
+                  right: 0,
+                  height: PILL_BAND_HEIGHT,
+                  zIndex: 35,
+                  backgroundColor: '#F7F3EE',
+                  pointerEvents: 'none',
+                }}
+              />
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  top: `calc(${BAR_HEIGHT + PILL_BAND_HEIGHT}px + env(safe-area-inset-top))`,
+                  left: 0,
+                  right: 0,
+                  height: 12,
+                  zIndex: 35,
+                  background: 'linear-gradient(to bottom, #F7F3EE, rgba(247, 243, 238, 0))',
+                  pointerEvents: 'none',
+                }}
+              />
+            </>
           )}
 
           {/* Filter popover */}

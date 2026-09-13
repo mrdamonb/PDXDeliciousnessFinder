@@ -13,9 +13,12 @@ type Props = {
   onClearFilters: () => void
   query: string
   onClearSearch: () => void
+  // Space the floating view pill covers at the top of the scroll area. Rows
+  // scroll up under it; at rest, the sort row sits just below it.
+  topInset?: number
 }
 
-export default function ListView({ restaurants, onSelect, filtersActive, onClearFilters, query, onClearSearch }: Props) {
+export default function ListView({ restaurants, onSelect, filtersActive, onClearFilters, query, onClearSearch, topInset = 0 }: Props) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('alpha')
 
   const sorted = [...restaurants].sort((a, b) =>
@@ -35,6 +38,8 @@ export default function ListView({ restaurants, onSelect, filtersActive, onClear
           alignItems: 'center',
           justifyContent: 'center',
           height: '100%',
+          boxSizing: 'border-box',
+          paddingTop: topInset,
           gap: 12,
           color: '#6B6560',
         }}
@@ -82,17 +87,18 @@ export default function ListView({ restaurants, onSelect, filtersActive, onClear
     )
   }
 
+  // One scroll container, sort row included: it scrolls away with the rows so
+  // they can pass up under HomeView's opaque pill band (header 1c) instead of
+  // being clipped below a fixed sort row.
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', gap: 6, padding: '8px 12px', flexShrink: 0 }}>
+    <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box', paddingTop: topInset }}>
+      <div style={{ display: 'flex', gap: 6, padding: '8px 12px' }}>
         <SortPill label="A–Z" active={sortOrder === 'alpha'} onClick={() => setSortOrder('alpha')} />
         <SortPill label="Latest" active={sortOrder === 'latest'} onClick={() => setSortOrder('latest')} />
       </div>
-      <div style={{ overflowY: 'auto', flex: 1 }}>
-        {sorted.map((r) => (
-          <RestaurantRow key={r.id} restaurant={r} onClick={() => onSelect(r.id)} />
-        ))}
-      </div>
+      {sorted.map((r) => (
+        <RestaurantRow key={r.id} restaurant={r} onClick={() => onSelect(r.id)} />
+      ))}
     </div>
   )
 }

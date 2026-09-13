@@ -1,26 +1,25 @@
 'use client'
 
-import { TOP_BAR_HEIGHT } from './HomeView'
-
 type Props = {
   activeCount: number
   onClick: () => void
 }
 
+// Filter chip. Sits at the right end of the floating view-pill row on Map and
+// List (header 1c); HomeView positions that row, so the chip no longer places
+// itself.
 export default function FilterButton({ activeCount, onClick }: Props) {
   return (
     <button
       onClick={onClick}
       style={{
-        position: 'absolute',
-        // Header + search row, plus an 8px gap.
-        top: `calc(${TOP_BAR_HEIGHT + 8}px + env(safe-area-inset-top))`,
-        right: 16,
-        zIndex: 20,
         display: 'flex',
         alignItems: 'center',
         gap: 6,
-        padding: '13px 14px',
+        height: 44,
+        padding: '0 14px',
+        boxSizing: 'border-box',
+        flexShrink: 0,
         backgroundColor: 'rgba(247, 243, 238, 0.92)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(237, 232, 227, 0.9)',

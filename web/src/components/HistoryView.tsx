@@ -22,6 +22,12 @@ type Props = {
   onSelectRestaurant: (id: string) => void
   query: string
   onClearSearch: () => void
+  // Space the floating view pill covers at the top of the scroll area; month
+  // headers stick just below it instead of sliding behind it.
+  topInset?: number
+  // Reports how many visits are showing (after search), or null while loading
+  // or errored, so HomeView can show "N visits" beside the pill.
+  onVisibleCountChange?: (count: number | null) => void
 }
 
 function toLocalDate(visitedAt: string): Date {
@@ -32,7 +38,14 @@ function toLocalDate(visitedAt: string): Date {
 // grouped under month/year headers — the web counterpart to iOS's
 // HistoryView + HistoryGrouping. Fetches via the getAllVisitLogs server
 // action, same loading/error/data shape as RestaurantPanel.tsx's visit fetch.
-export default function HistoryView({ restaurants, onSelectRestaurant, query, onClearSearch }: Props) {
+export default function HistoryView({
+  restaurants,
+  onSelectRestaurant,
+  query,
+  onClearSearch,
+  topInset = 0,
+  onVisibleCountChange,
+}: Props) {
   const router = useRouter()
   const [logs, setLogs] = useState<VisitLogWithRestaurant[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -113,6 +126,17 @@ export default function HistoryView({ restaurants, onSelectRestaurant, query, on
     setLogs((prev) => (prev ?? []).filter((log) => log.id !== id))
   }
 
+  // Grouped once per render: feeds both the visit count reported to HomeView
+  // and the list below. Null while loading or errored.
+  const visibleSections = loading || error ? null : groupVisitsByMonth(logs ?? [], query)
+  const visibleCount = visibleSections
+    ? visibleSections.reduce((n, section) => n + section.entries.length, 0)
+    : null
+
+  useEffect(() => {
+    onVisibleCountChange?.(visibleCount)
+  }, [visibleCount, onVisibleCountChange])
+
   let content: React.ReactNode
 
   if (loading) {
@@ -160,7 +184,7 @@ export default function HistoryView({ restaurants, onSelectRestaurant, query, on
       </div>
     )
   } else {
-    const sections = groupVisitsByMonth(logs ?? [], query)
+    const sections = visibleSections ?? []
     const trimmedQuery = query.trim()
 
     // Zero visits and "every visit's restaurant was deleted" both land here
@@ -229,13 +253,15 @@ export default function HistoryView({ restaurants, onSelectRestaurant, query, on
       )
     } else {
       content = (
-        <div style={{ height: '100%', overflowY: 'auto' }}>
+        <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box', paddingTop: topInset }}>
           {sections.map((section) => (
             <div key={section.id}>
               <div
                 style={{
                   position: 'sticky',
-                  top: 0,
+                  // Stick at the bottom edge of HomeView's pill band, not
+                  // behind the floating pill.
+                  top: topInset,
                   zIndex: 1,
                   padding: '14px 16px 6px',
                   fontSize: 12,

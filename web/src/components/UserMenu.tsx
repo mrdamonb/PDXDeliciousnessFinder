@@ -19,8 +19,8 @@ export default function UserMenu({ email }: Props) {
       <button
         onClick={handleToggle}
         style={{
-          width: 38,
-          height: 38,
+          width: 44,
+          height: 44,
           borderRadius: '50%',
           backgroundColor: '#C2410C',
           color: 'white',
@@ -49,7 +49,7 @@ export default function UserMenu({ email }: Props) {
           <div
             style={{
               position: 'absolute',
-              top: 44,
+              top: 50,
               right: 0,
               backgroundColor: 'white',
               border: '1px solid #EDE8E3',
