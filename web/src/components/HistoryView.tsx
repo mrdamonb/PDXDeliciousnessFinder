@@ -253,7 +253,12 @@ export default function HistoryView({
       )
     } else {
       content = (
-        <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box', paddingTop: topInset }}>
+        <div style={{ height: '100%', overflowY: 'auto' }}>
+          {/* Spacer, not padding-top: on iOS Safari the scroll container's
+              padding shifted the sticky month headers' `top` down a second
+              inset, so they parked over the first row. With no padding, both
+              engines measure `top` from the same edge. */}
+          <div aria-hidden="true" style={{ height: topInset }} />
           {sections.map((section) => (
             <div key={section.id}>
               <div
@@ -295,10 +300,11 @@ export default function HistoryView({
     <>
       {content}
 
-      {/* "+" FAB — lives inside the Journal's own content, not HomeView's
-          shared header/toggle bar. Same accent as the header's "Add
-          restaurant" button. Hidden while the initial fetch is loading or
-          errored — see canAddVisit above. */}
+      {/* "+" FAB — lives inside the Journal's own content, not HomeView.
+          Same size, position, and accent as HomeView's add-restaurant FAB
+          on List, so the button doesn't jump when switching views. Hidden
+          while the initial fetch is loading or errored — see canAddVisit
+          above. */}
       {canAddVisit && (
         <button
           onClick={() => setPickerOpen(true)}
@@ -306,21 +312,21 @@ export default function HistoryView({
           style={{
             position: 'fixed',
             bottom: 'calc(24px + env(safe-area-inset-bottom))',
-            right: 20,
+            right: 16,
             zIndex: 20,
-            width: 52,
-            height: 52,
+            width: 56,
+            height: 56,
             borderRadius: 999,
             border: 'none',
             backgroundColor: '#C2410C',
             color: '#fff',
-            fontSize: 26,
+            fontSize: 28,
             lineHeight: 1,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
+            boxShadow: '0 4px 14px rgba(194,65,12,0.38)',
           }}
         >
           +

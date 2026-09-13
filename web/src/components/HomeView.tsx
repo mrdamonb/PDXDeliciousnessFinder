@@ -207,34 +207,8 @@ export default function HomeView({ restaurants, userEmail }: Props) {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <div style={{ flexShrink: 0 }}>
             <UserMenu email={userEmail} />
-            {/* Stays in the bar for step 2a; step 2b moves it to a floating
-                action button. */}
-            {view !== 'journal' && (
-              <button
-                onClick={() => setModalOpen(true)}
-                disabled={modalOpen}
-                aria-label="Add restaurant"
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 999,
-                  border: 'none',
-                  backgroundColor: '#C2410C',
-                  color: '#fff',
-                  fontSize: 20,
-                  lineHeight: 1,
-                  cursor: modalOpen ? 'default' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                +
-              </button>
-            )}
           </div>
         </div>
       </header>
@@ -585,6 +559,45 @@ export default function HomeView({ restaurants, userEmail }: Props) {
                 </span>
               )}
             </div>
+          )}
+
+          {/* Add-restaurant FAB (header 1c, step 2b) — Map and List only; the
+              Journal has its own "add a visit" FAB in HistoryView, same size
+              and spot as the List one. On the map it sits above the resting
+              pill, and it hides while a restaurant panel is up (UX spec: the
+              FAB never competes with an open bottom sheet). */}
+          {(view === 'list' || (view === 'map' && !selectedId)) && (
+            <button
+              onClick={() => setModalOpen(true)}
+              disabled={modalOpen}
+              aria-label="Add restaurant"
+              style={{
+                position: 'absolute',
+                right: 16,
+                // Map: above the resting pill and clear of Google's camera
+                // control, whose top edge sits about 133px up the right side.
+                bottom:
+                  view === 'map'
+                    ? 'calc(150px + env(safe-area-inset-bottom))'
+                    : 'calc(24px + env(safe-area-inset-bottom))',
+                zIndex: 20,
+                width: 56,
+                height: 56,
+                borderRadius: 999,
+                border: 'none',
+                backgroundColor: '#C2410C',
+                color: '#fff',
+                fontSize: 28,
+                lineHeight: 1,
+                cursor: modalOpen ? 'default' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 14px rgba(194,65,12,0.38)',
+              }}
+            >
+              +
+            </button>
           )}
 
           {/* Map zero-results overlay */}
